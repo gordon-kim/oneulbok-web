@@ -208,13 +208,13 @@ export default function OneulbokHome() {
           {/* 광고 보기 버튼 */}
           {!isLoggedIn ? (
               <Link
-                href="/login?next=/ad"
+                href="/login"
                 className="w-full h-[72px] rounded-[24px] bg-[#FFF4DF] border border-orange-100 text-[#FF642A] font-black text-2xl shadow-sm flex items-center justify-center gap-3 active:scale-[0.98] transition"
               >
                 <span className="w-11 h-11 rounded-full bg-white flex items-center justify-center">
                   <Play size={24} className="text-[#FF642A] fill-[#FF642A]" />
                 </span>
-                로그인하고 복권 받기
+                로그인하고 오늘복 받기
               </Link>
             ) : remainingAds > 0 ? (
               <Link
