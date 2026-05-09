@@ -372,9 +372,9 @@ export default function PrizesPage() {
           {/* 하단 광고 배너 */}
           <AdBanner
             slotId="prizes-list-bottom"
-            label="PRIZE LIST AD"
-            title="경품 목록 하단 광고"
-            desc="경품 목록을 둘러보는 동안 노출되는 배너 광고 영역이에요."
+            label="추천"
+            title="놓치기 아쉬운 혜택"
+            desc="응모권을 모아 더 많은 경품에 도전해보세요."
           />
           {/* 안내 */}
           <section className="rounded-[24px] bg-white border border-orange-100 shadow-sm p-4">

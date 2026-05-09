@@ -192,7 +192,7 @@ export default function WalletPage() {
           <section className="rounded-[24px] bg-white border border-orange-100 shadow-sm p-4 flex items-start gap-3">
             <Coins className="text-[#FF642A] mt-0.5" size={22} />
             <p className="text-sm leading-relaxed text-[#6B4B38]">
-              현재 포인트, 복권, 응모권과 최근 내역은 로그인한 계정 기준으로 불러오고 있어요.
+              포인트, 복권, 응모권과 최근 내역은 내 계정에 안전하게 저장돼요.
             </p>
           </section>
         </div>

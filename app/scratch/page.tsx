@@ -318,7 +318,7 @@ export default function ScratchPage() {
             <div className="mt-5 rounded-2xl bg-[#FFF8EF] border border-orange-100 p-4 flex items-start gap-3">
               <Sparkles className="text-[#FF642A] mt-0.5" size={22} />
               <p className="text-sm leading-relaxed text-[#6B4B38]">
-                실제 버전에서는 광고를 끝까지 본 뒤에만 복권이 지급되고, 결과는 지갑에 자동 저장돼요.
+                광고를 보고 받은 복권을 긁으면 결과가 지갑 최근 내역에 자동 저장돼요.
               </p>
             </div>
 
@@ -372,9 +372,9 @@ export default function ScratchPage() {
           {isScratched && (
             <AdBanner
               slotId="scratch-result-bottom"
-              label="SCRATCH RESULT AD"
-              title="복권 결과 하단 광고"
-              desc="복권 결과 확인 후 노출되는 배너 광고 영역이에요."
+              label="추천"
+              title="결과 확인 완료!"
+              desc="다른 혜택과 경품 소식도 함께 확인해보세요."
             />
           )}
 

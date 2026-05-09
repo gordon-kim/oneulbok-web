@@ -296,9 +296,9 @@ export default function OneulbokHome() {
           {/* 하단 광고 배너 */}
           <AdBanner
             slotId="home-bottom"
-            label="HOME AD"
-            title="오늘복 홈 하단 광고"
-            desc="홈 화면에서 상시 노출되는 배너 광고 영역이에요."
+            label="추천"
+            title="오늘의 작은 혜택"
+            desc="매일 새롭게 준비되는 오늘복 소식을 확인해보세요."
           />
         </div>
 

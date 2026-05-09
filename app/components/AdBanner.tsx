@@ -7,9 +7,9 @@ type AdBannerProps = {
 
 export default function AdBanner({
   slotId,
-  label = "AD",
-  title = "광고 배너 영역",
-  desc = "추후 실제 광고가 노출될 위치예요.",
+  label = "추천",
+  title = "오늘복 추천 소식",
+  desc = "오늘의 혜택과 이벤트를 확인해보세요.",
 }: AdBannerProps) {
   const isDevelopment = process.env.NODE_ENV === "development";
 
@@ -48,7 +48,7 @@ export default function AdBanner({
         </div>
 
         <div className="text-xs font-black text-[#B18B75] bg-white border border-orange-100 rounded-full px-3 py-1">
-          광고
+          혜택
         </div>
       </div>
     </section>

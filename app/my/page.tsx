@@ -29,21 +29,25 @@ const menuItems = [
     icon: <UserPlus size={22} />,
     title: "친구 초대",
     desc: "초대하면 추가 응모권을 받을 수 있어요",
+    href: "",
   },
   {
     icon: <Bell size={22} />,
     title: "알림 설정",
     desc: "당첨 발표와 오늘복 알림을 받아요",
+    href: "",
   },
   {
     icon: <ShieldCheck size={22} />,
     title: "이용약관 / 개인정보처리방침",
     desc: "서비스 이용에 필요한 약관을 확인해요",
+    href: "/terms",
   },
   {
     icon: <Settings size={22} />,
     title: "앱 설정",
     desc: "닉네임, 알림, 계정 정보를 관리해요",
+    href: "",
   },
 ];
 
@@ -259,11 +263,8 @@ function SummaryCard({ title, value }: { title: string; value: string }) {
 }
 
 function MenuCard({ item }: { item: (typeof menuItems)[number] }) {
-  return (
-    <button
-      onClick={() => alert("준비 중인 기능이에요.")}
-      className="w-full rounded-[24px] bg-white border border-orange-100 shadow-sm p-4 flex items-center gap-4 text-left active:scale-[0.99] transition"
-    >
+  const content = (
+    <>
       <div className="w-12 h-12 rounded-2xl bg-[#FFF4DF] text-[#FF642A] flex items-center justify-center shrink-0">
         {item.icon}
       </div>
@@ -272,9 +273,30 @@ function MenuCard({ item }: { item: (typeof menuItems)[number] }) {
         <p className="text-sm text-[#7E6658] mt-1 leading-tight">{item.desc}</p>
       </div>
       <ChevronRight size={19} className="text-[#B8A99F] shrink-0" />
+    </>
+  );
+
+  if (item.href) {
+    return (
+      <Link
+        href={item.href}
+        className="w-full rounded-[24px] bg-white border border-orange-100 shadow-sm p-4 flex items-center gap-4 text-left active:scale-[0.99] transition"
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <button
+      onClick={() => alert("준비 중인 기능이에요.")}
+      className="w-full rounded-[24px] bg-white border border-orange-100 shadow-sm p-4 flex items-center gap-4 text-left active:scale-[0.99] transition"
+    >
+      {content}
     </button>
   );
 }
+
 
 function BottomNav({ icon, label, href, active = false }: { icon: React.ReactNode; label: string; href: string; active?: boolean }) {
   return (
