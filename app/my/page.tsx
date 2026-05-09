@@ -192,7 +192,13 @@ export default function MyPage() {
                 <h3 className="text-3xl font-black mt-1 tracking-wide">BOK2026</h3>
                 <p className="text-sm text-[#7E6658] mt-2">친구가 가입할 때 입력하면 둘 다 응모권을 받을 수 있어요.</p>
               </div>
-              <button className="h-12 px-4 rounded-2xl bg-[#FFF4DF] text-[#FF642A] font-black active:scale-95 transition shrink-0">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText("BOK2026");
+                  alert("초대 코드가 복사됐어요.");
+                }}
+                className="h-12 px-4 rounded-2xl bg-[#FFF4DF] text-[#FF642A] font-black active:scale-95 transition shrink-0"
+              >
                 복사
               </button>
             </div>
@@ -254,7 +260,10 @@ function SummaryCard({ title, value }: { title: string; value: string }) {
 
 function MenuCard({ item }: { item: (typeof menuItems)[number] }) {
   return (
-    <button className="w-full rounded-[24px] bg-white border border-orange-100 shadow-sm p-4 flex items-center gap-4 text-left active:scale-[0.99] transition">
+    <button
+      onClick={() => alert("준비 중인 기능이에요.")}
+      className="w-full rounded-[24px] bg-white border border-orange-100 shadow-sm p-4 flex items-center gap-4 text-left active:scale-[0.99] transition"
+    >
       <div className="w-12 h-12 rounded-2xl bg-[#FFF4DF] text-[#FF642A] flex items-center justify-center shrink-0">
         {item.icon}
       </div>

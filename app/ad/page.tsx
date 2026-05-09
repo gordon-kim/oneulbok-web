@@ -198,7 +198,7 @@ export default function AdPage() {
                 type: "ad",
                 title: "광고 시청",
                 description: "복권 1장, 응모권 1장 지급",
-                amount: "+1장",
+                amount: "+1회",
                 emoji: "🎬",
               });
 

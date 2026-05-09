@@ -36,6 +36,10 @@ export default function WalletPage() {
   const [rewardLogs, setRewardLogs] = useState<SupabaseRewardLog[]>([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  function showComingSoon() {
+    alert("준비 중인 기능이에요.");
+  }
+
 
   useEffect(() => {
       async function loadWalletData() {
@@ -147,7 +151,10 @@ export default function WalletPage() {
           <section className="space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-black">최근 내역</h3>
-              <button className="text-sm font-bold text-[#8A7567] flex items-center gap-1">
+              <button
+                onClick={showComingSoon}
+                className="text-sm font-bold text-[#8A7567] flex items-center gap-1"
+              >
                 전체보기 <ChevronRight size={16} />
               </button>
             </div>
