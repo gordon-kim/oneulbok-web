@@ -81,7 +81,7 @@ export default function AdminPage() {
     loadAdminData();
   }, []);
 
-  return (
+ return (
     <main className="min-h-screen bg-[#FFF8EF] flex justify-center px-4 py-6 text-[#3B2414]">
       <section className="w-full max-w-[430px] min-h-[860px] bg-[#FFFCF7] rounded-[36px] shadow-2xl overflow-hidden border border-orange-100">
         <header className="px-6 pt-6 pb-4 flex items-center gap-4">
@@ -109,6 +109,22 @@ export default function AdminPage() {
               운영용 대시보드예요.
             </p>
           </section>
+
+          <Link
+            href="/admin/users"
+            className="h-14 rounded-[20px] bg-white border border-orange-100 shadow-sm font-black text-[#3B2414] flex items-center justify-center gap-2 active:scale-95 transition"
+          >
+            <Users size={21} className="text-[#FF642A]" />
+            회원 목록 보기
+          </Link>
+
+          <Link
+            href="/admin/prize-entries"
+            className="h-14 rounded-[20px] bg-white border border-orange-100 shadow-sm font-black text-[#3B2414] flex items-center justify-center gap-2 active:scale-95 transition"
+          >
+            <Gift size={21} className="text-[#FF642A]" />
+            경품 응모 내역 보기
+          </Link>
 
           {isLoading ? (
               <section className="rounded-[24px] bg-white border border-orange-100 shadow-sm p-6 text-center">
@@ -141,7 +157,29 @@ export default function AdminPage() {
             ) : (
               <>
                 <section className="grid grid-cols-2 gap-3">
-                  ...
+                  <AdminStatCard
+                    icon={<Users size={24} />}
+                    title="총 회원"
+                    value={`${memberCount}명`}
+                  />
+
+                  <AdminStatCard
+                    icon={<Megaphone size={24} />}
+                    title="광고 시청"
+                    value={`${adViewTotal}회`}
+                  />
+
+                  <AdminStatCard
+                    icon={<Ticket size={24} />}
+                    title="복권 긁기"
+                    value={`${scratchLogCount}회`}
+                  />
+
+                  <AdminStatCard
+                    icon={<Gift size={24} />}
+                    title="경품 응모"
+                    value={`${prizeEntryCount}건`}
+                  />
                 </section>
 
               <section className="rounded-[28px] bg-white border border-orange-100 shadow-sm p-5">
