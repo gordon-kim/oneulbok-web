@@ -168,7 +168,10 @@ export default function AdminPrizesPage() {
 
 function PrizeSummaryCard({ prize }: { prize: AdminPrizeSummary }) {
   return (
-    <article className="rounded-[26px] bg-white border border-orange-100 shadow-sm p-5">
+    <Link
+      href={`/admin/prizes/${prize.prize_id}`}
+      className="block rounded-[26px] bg-white border border-orange-100 shadow-sm p-5 active:scale-[0.99] transition"
+    >
       <div className="flex items-start gap-3">
         <div className="w-12 h-12 rounded-2xl bg-[#FFF4DF] text-[#FF642A] flex items-center justify-center shrink-0">
           <Gift size={24} />
@@ -214,7 +217,7 @@ function PrizeSummaryCard({ prize }: { prize: AdminPrizeSummary }) {
             : "-"}
         </p>
       </div>
-    </article>
+    </Link>
   );
 }
 
