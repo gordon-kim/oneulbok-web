@@ -8,6 +8,7 @@ import {
   Gift,
   Megaphone,
   Ticket,
+  Trophy,
   Users,
 } from "lucide-react";
 
@@ -124,6 +125,14 @@ export default function AdminPage() {
           >
             <Gift size={21} className="text-[#FF642A]" />
             경품 응모 내역 보기
+          </Link>
+
+          <Link
+            href="/admin/prizes"
+            className="h-14 rounded-[20px] bg-white border border-orange-100 shadow-sm font-black text-[#3B2414] flex items-center justify-center gap-2 active:scale-95 transition"
+          >
+            <Trophy size={21} className="text-[#FF642A]" />
+            경품별 현황 보기
           </Link>
 
           {isLoading ? (
