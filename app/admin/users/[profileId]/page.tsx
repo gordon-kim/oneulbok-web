@@ -8,6 +8,7 @@ import {
   CalendarDays,
   Gift,
   History,
+  Save,
   Ticket,
   Trophy,
   User,
@@ -55,11 +56,24 @@ type AdminWinner = {
   selected_at: string;
 };
 
+type AdminAssetLog = {
+  id: string;
+  previous_points: number;
+  previous_scratch_tickets: number;
+  previous_entry_tickets: number;
+  next_points: number;
+  next_scratch_tickets: number;
+  next_entry_tickets: number;
+  memo: string | null;
+  created_at: string;
+};
+
 type AdminUserDetail = {
   profile: AdminUserProfile | null;
   rewardLogs: AdminRewardLog[];
   prizeEntries: AdminPrizeEntry[];
   winners: AdminWinner[];
+  assetLogs: AdminAssetLog[];
 };
 
 const statusLabels: Record<string, string> = {
@@ -75,6 +89,12 @@ export default function AdminUserDetailPage() {
   const [detail, setDetail] = useState<AdminUserDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+
+  const [editPoints, setEditPoints] = useState(0);
+  const [editScratchTickets, setEditScratchTickets] = useState(0);
+  const [editEntryTickets, setEditEntryTickets] = useState(0);
+  const [isSavingAssets, setIsSavingAssets] = useState(false);
+  const [adjustmentMemo, setAdjustmentMemo] = useState("");
 
   useEffect(() => {
     async function loadUserDetail() {
@@ -106,13 +126,91 @@ export default function AdminUserDetailPage() {
         return;
       }
 
+      const nextDetail = data as AdminUserDetail;
+
       setErrorMessage("");
-      setDetail(data as AdminUserDetail);
+      setDetail(nextDetail);
+
+      setEditPoints(nextDetail.profile?.points ?? 0);
+      setEditScratchTickets(nextDetail.profile?.scratch_tickets ?? 0);
+      setEditEntryTickets(nextDetail.profile?.entry_tickets ?? 0);
+
       setIsLoading(false);
     }
 
     loadUserDetail();
   }, [profileId]);
+    async function handleSaveAssets() {
+      if (!profileId) {
+        alert("회원 정보를 찾을 수 없어요.");
+        return;
+      }
+
+      if (editPoints < 0 || editScratchTickets < 0 || editEntryTickets < 0) {
+        alert("포인트, 복권, 응모권은 0보다 작을 수 없어요.");
+        return;
+      }
+
+      const isConfirmed = window.confirm(
+        "이 회원의 포인트, 복권, 응모권 수량을 수정할까요?"
+      );
+
+      if (!isConfirmed) {
+        return;
+      }
+
+      setIsSavingAssets(true);
+
+      const { data, error } = await supabase.rpc("update_admin_user_assets", {
+        target_profile_id: profileId,
+        next_points: editPoints,
+        next_scratch_tickets: editScratchTickets,
+        next_entry_tickets: editEntryTickets,
+        adjustment_memo: adjustmentMemo || null,
+      });
+
+      if (error) {
+        console.error("회원 보유 수량 수정 실패:", error.message);
+
+        if (error.message.includes("not allowed")) {
+          alert("관리자 권한이 필요해요.");
+        } else if (error.message.includes("negative value")) {
+          alert("포인트, 복권, 응모권은 0보다 작을 수 없어요.");
+        } else {
+          alert("회원 보유 수량 저장에 실패했어요.");
+        }
+
+        setIsSavingAssets(false);
+        return;
+      }
+
+      setDetail((currentDetail) => {
+          if (!currentDetail) {
+            return currentDetail;
+          }
+
+          return {
+            ...currentDetail,
+            profile: data as AdminUserProfile,
+          };
+        });
+
+        setAdjustmentMemo("");
+
+        const { data: refreshedDetail, error: refreshError } = await supabase.rpc(
+          "get_admin_user_detail",
+          {
+            target_profile_id: profileId,
+          }
+        );
+
+        if (!refreshError) {
+          setDetail(refreshedDetail as AdminUserDetail);
+        }
+
+        setIsSavingAssets(false);
+        alert("회원 보유 수량이 저장됐어요.");
+    }
 
   const profile = detail?.profile;
 
@@ -204,6 +302,122 @@ export default function AdminUserDetailPage() {
                   value={`${profile.entry_tickets ?? 0}장`}
                 />
               </section>
+
+              <section className="rounded-[28px] bg-white border border-orange-100 shadow-sm p-5 space-y-4">
+                  <div>
+                    <p className="text-sm font-bold text-[#FF642A]">관리자 조정</p>
+                    <h3 className="text-lg font-black mt-1">보유 수량 수정</h3>
+                    <p className="text-xs text-[#8A7567] mt-1">
+                      운영상 필요한 경우 회원의 포인트, 복권, 응모권 수량을 수정할 수 있어요.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2">
+                    <label className="space-y-2">
+                      <span className="block text-xs font-black text-[#8A7567]">포인트</span>
+                      <input
+                        type="number"
+                        min={0}
+                        value={editPoints}
+                        onChange={(event) => setEditPoints(Number(event.target.value))}
+                        className="w-full h-12 rounded-[18px] bg-[#FFF8EF] border border-orange-100 px-3 text-center font-black outline-none focus:border-[#FF642A]"
+                      />
+                    </label>
+
+                    <label className="space-y-2">
+                      <span className="block text-xs font-black text-[#8A7567]">복권</span>
+                      <input
+                        type="number"
+                        min={0}
+                        value={editScratchTickets}
+                        onChange={(event) => setEditScratchTickets(Number(event.target.value))}
+                        className="w-full h-12 rounded-[18px] bg-[#FFF8EF] border border-orange-100 px-3 text-center font-black outline-none focus:border-[#FF642A]"
+                      />
+                    </label>
+
+                    <label className="space-y-2">
+                      <span className="block text-xs font-black text-[#8A7567]">응모권</span>
+                      <input
+                        type="number"
+                        min={0}
+                        value={editEntryTickets}
+                        onChange={(event) => setEditEntryTickets(Number(event.target.value))}
+                        className="w-full h-12 rounded-[18px] bg-[#FFF8EF] border border-orange-100 px-3 text-center font-black outline-none focus:border-[#FF642A]"
+                      />
+                    </label>
+                  </div>
+
+                  <label className="space-y-2 block">
+                    <span className="block text-xs font-black text-[#8A7567]">
+                      조정 메모
+                    </span>
+                    <textarea
+                      value={adjustmentMemo}
+                      onChange={(event) => setAdjustmentMemo(event.target.value)}
+                      placeholder="예: 이벤트 보상 지급, 오류 보정, 테스트 계정 초기화"
+                      className="w-full min-h-[82px] rounded-[18px] bg-[#FFF8EF] border border-orange-100 p-4 text-sm font-bold outline-none focus:border-[#FF642A] resize-none"
+                    />
+                  </label>
+
+                  <button
+                    onClick={handleSaveAssets}
+                    disabled={isSavingAssets}
+                    className="w-full h-14 rounded-[20px] bg-[#FF642A] text-white font-black shadow-sm active:scale-95 transition flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    <Save size={19} />
+                    {isSavingAssets ? "저장 중..." : "보유 수량 저장"}
+                  </button>
+                </section>
+
+                <DetailSection
+                  icon={<Save size={21} />}
+                  title="관리자 조정 이력"
+                  emptyText="관리자 조정 이력이 없어요."
+                >
+                  {detail?.assetLogs.map((log) => (
+                    <div
+                      key={log.id}
+                      className="rounded-[18px] bg-[#FFF8EF] border border-orange-100 p-4"
+                    >
+                      <div className="space-y-2">
+                        <p className="font-black text-[#3B2414]">보유 수량 변경</p>
+
+                        <div className="grid grid-cols-3 gap-2">
+                          <div className="rounded-[14px] bg-white border border-orange-100 p-2 text-center">
+                            <p className="text-[10px] font-bold text-[#8A7567]">포인트</p>
+                            <p className="text-xs font-black mt-1">
+                              {log.previous_points} → {log.next_points}
+                            </p>
+                          </div>
+
+                          <div className="rounded-[14px] bg-white border border-orange-100 p-2 text-center">
+                            <p className="text-[10px] font-bold text-[#8A7567]">복권</p>
+                            <p className="text-xs font-black mt-1">
+                              {log.previous_scratch_tickets} → {log.next_scratch_tickets}
+                            </p>
+                          </div>
+
+                          <div className="rounded-[14px] bg-white border border-orange-100 p-2 text-center">
+                            <p className="text-[10px] font-bold text-[#8A7567]">응모권</p>
+                            <p className="text-xs font-black mt-1">
+                              {log.previous_entry_tickets} → {log.next_entry_tickets}
+                            </p>
+                          </div>
+                        </div>
+
+                        {log.memo && (
+                          <p className="text-xs text-[#8A7567] leading-relaxed">
+                            메모: {log.memo}
+                          </p>
+                        )}
+
+                        <p className="text-xs text-[#8A7567]">
+                          조정일: {new Date(log.created_at).toLocaleString("ko-KR")}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </DetailSection>
 
               <DetailSection
                 icon={<History size={21} />}
