@@ -152,7 +152,10 @@ export default function AdminUsersPage() {
 
 function UserCard({ user }: { user: AdminUser }) {
   return (
-    <article className="rounded-[26px] bg-white border border-orange-100 shadow-sm p-5">
+    <Link
+      href={`/admin/users/${user.id}`}
+      className="block rounded-[26px] bg-white border border-orange-100 shadow-sm p-5 active:scale-[0.99] transition"
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
           <div className="w-12 h-12 rounded-2xl bg-[#FFF4DF] text-[#FF642A] flex items-center justify-center shrink-0">
@@ -192,7 +195,7 @@ function UserCard({ user }: { user: AdminUser }) {
           value={`${user.entry_tickets ?? 0}장`}
         />
       </div>
-    </article>
+    </Link>
   );
 }
 

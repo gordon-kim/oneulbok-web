@@ -22,6 +22,12 @@ type AdminPrizeSummary = {
   latest_entry_at: string | null;
 };
 
+const PRIZE_TARGET_ENTRIES: Record<string, number> = {
+  "cu-1000": 500,
+  "starbucks-americano": 300,
+  "baemin-5000": 400,
+};
+
 export default function AdminPrizesPage() {
   const [prizes, setPrizes] = useState<AdminPrizeSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -60,10 +66,15 @@ export default function AdminPrizesPage() {
     0
   );
 
-  const totalTickets = prizes.reduce(
-    (sum, prize) => sum + (prize.total_ticket_cost ?? 0),
-    0
-  );
+  const totalParticipants = prizes.reduce(
+  (sum, prize) => sum + (prize.participant_count ?? 0),
+  0
+);
+
+  const confirmedPrizeTotal = prizes.reduce((sum, prize) => {
+    const targetEntries = PRIZE_TARGET_ENTRIES[prize.prize_id] ?? 500;
+    return sum + Math.floor((prize.entry_count ?? 0) / targetEntries);
+  }, 0);
 
   return (
     <main className="min-h-screen bg-[#FFF8EF] flex justify-center px-4 py-6 text-[#3B2414]">
@@ -97,15 +108,20 @@ export default function AdminPrizesPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 mt-5">
-              <div className="rounded-[20px] bg-white/10 border border-white/15 p-4">
-                <p className="text-xs font-bold text-white/65">총 응모 건수</p>
-                <p className="text-2xl font-black mt-1">{totalEntries}건</p>
+            <div className="grid grid-cols-3 gap-2 mt-5">
+              <div className="rounded-[18px] bg-white/10 border border-white/15 p-3 text-center">
+                <p className="text-xs font-bold text-white/65">총 응모</p>
+                <p className="text-xl font-black mt-1">{totalEntries}건</p>
               </div>
 
-              <div className="rounded-[20px] bg-white/10 border border-white/15 p-4">
-                <p className="text-xs font-bold text-white/65">사용 응모권</p>
-                <p className="text-2xl font-black mt-1">{totalTickets}장</p>
+              <div className="rounded-[18px] bg-white/10 border border-white/15 p-3 text-center">
+                <p className="text-xs font-bold text-white/65">참여 합계</p>
+                <p className="text-xl font-black mt-1">{totalParticipants}명</p>
+              </div>
+
+              <div className="rounded-[18px] bg-white/10 border border-white/15 p-3 text-center">
+                <p className="text-xs font-bold text-white/65">확정 경품</p>
+                <p className="text-xl font-black mt-1">{confirmedPrizeTotal}개</p>
               </div>
             </div>
           </section>
@@ -166,7 +182,15 @@ export default function AdminPrizesPage() {
   );
 }
 
+
 function PrizeSummaryCard({ prize }: { prize: AdminPrizeSummary }) {
+  const targetEntries = PRIZE_TARGET_ENTRIES[prize.prize_id] ?? 500;
+  const entryCount = prize.entry_count ?? 0;
+  const confirmedPrizeCount = Math.floor(entryCount / targetEntries);
+  const currentRoundEntries = entryCount % targetEntries;
+  const remainingEntries =
+    currentRoundEntries === 0 ? targetEntries : targetEntries - currentRoundEntries;
+
   return (
     <Link
       href={`/admin/prizes/${prize.prize_id}`}
@@ -192,19 +216,19 @@ function PrizeSummaryCard({ prize }: { prize: AdminPrizeSummary }) {
         <MiniInfo
           icon={<Ticket size={17} />}
           title="응모"
-          value={`${prize.entry_count ?? 0}건`}
-        />
-
-        <MiniInfo
-          icon={<Gift size={17} />}
-          title="응모권"
-          value={`${prize.total_ticket_cost ?? 0}장`}
+          value={`${entryCount}건`}
         />
 
         <MiniInfo
           icon={<Users size={17} />}
           title="참여자"
           value={`${prize.participant_count ?? 0}명`}
+        />
+
+        <MiniInfo
+          icon={<Trophy size={17} />}
+          title="확정"
+          value={`${confirmedPrizeCount}개`}
         />
       </div>
 
@@ -215,6 +239,15 @@ function PrizeSummaryCard({ prize }: { prize: AdminPrizeSummary }) {
           {prize.latest_entry_at
             ? new Date(prize.latest_entry_at).toLocaleString("ko-KR")
             : "-"}
+        </p>
+      </div>
+
+      <div className="mt-2 rounded-[18px] bg-[#FFF4DF] border border-orange-100 p-3">
+        <p className="text-xs font-black text-[#FF642A]">
+          다음 확정까지 {remainingEntries}건 남음
+        </p>
+        <p className="text-xs font-bold text-[#8A7567] mt-1">
+          현재 라운드 {currentRoundEntries} / {targetEntries}
         </p>
       </div>
     </Link>

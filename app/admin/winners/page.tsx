@@ -266,6 +266,13 @@ function WinnerCard({
         </p>
       </div>
 
+      <Link
+        href={`/admin/prizes/${winner.prize_id}`}
+        className="h-12 rounded-[18px] bg-[#FFF4DF] border border-orange-100 text-[#FF642A] font-black flex items-center justify-center active:scale-95 transition"
+      >
+        경품 응모자 상세 보기
+      </Link>
+
       <div className="space-y-2">
         <label className="text-xs font-black text-[#8A7567]">
           지급 상태
