@@ -135,6 +135,14 @@ export default function AdminPage() {
             경품별 현황 보기
           </Link>
 
+          <Link
+            href="/admin/winners"
+            className="h-14 rounded-[20px] bg-white border border-orange-100 shadow-sm font-black text-[#3B2414] flex items-center justify-center gap-2 active:scale-95 transition"
+          >
+            <Trophy size={21} className="text-[#FF642A]" />
+            당첨 내역 보기
+          </Link>
+
           {isLoading ? (
               <section className="rounded-[24px] bg-white border border-orange-100 shadow-sm p-6 text-center">
                 <p className="font-black text-[#FF642A]">
