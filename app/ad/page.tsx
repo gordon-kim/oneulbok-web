@@ -206,6 +206,23 @@ export default function AdPage() {
               console.error("광고 보상 내역 저장 실패:", logError.message);
             }
 
+          const { error: adRewardLogError } = await supabase.rpc(
+            "record_ad_reward_log",
+            {
+              p_ad_type: "reward_ad",
+              p_reward_type: "scratch_ticket_entry_ticket",
+              p_reward_amount: 1,
+              p_provider: "internal",
+              p_provider_event_id: null,
+              p_status: "completed",
+              p_memo: "광고 시청 보상: 복권 1장, 응모권 1장 지급",
+            }
+          );
+
+          if (adRewardLogError) {
+            console.error("광고 보상 로그 저장 실패:", adRewardLogError.message);
+          }
+
           setAdViewsToday(nextAdViews);
         }
 
