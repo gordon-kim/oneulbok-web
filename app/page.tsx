@@ -10,6 +10,8 @@ import { getCurrentProfile } from "./lib/auth";
 
 import AdBanner from "./components/AdBanner";
 
+
+
 export default function OneulbokHome() {
 
   const DAILY_AD_LIMIT = 10;
