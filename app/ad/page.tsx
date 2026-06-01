@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -15,331 +15,363 @@ import {
   Clock,
 } from "lucide-react";
 
-import {
-  getTodayKey,
-} from "../lib/storage";
-
+import { getTodayKey } from "../lib/storage";
 import { supabase } from "../lib/supabase";
 import { getCurrentProfile } from "../lib/auth";
 
+const DAILY_AD_LIMIT = 10;
+const AD_SECONDS = 15;
+
 export default function AdPage() {
-  const DAILY_AD_LIMIT = 10;
-
-
-
-  const [secondsLeft, setSecondsLeft] = useState(15);
+  const [secondsLeft, setSecondsLeft] = useState(AD_SECONDS);
+  const [isAdFinished, setIsAdFinished] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [isRewarding, setIsRewarding] = useState(false);
+  const [rewardErrorMessage, setRewardErrorMessage] = useState("");
   const [adViewsToday, setAdViewsToday] = useState(0);
   const [isLimitReached, setIsLimitReached] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [profileId, setProfileId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const rewardGivenRef = useRef(false);
 
-    useEffect(() => {
-      async function loadAdViewData() {
-        const profile = await getCurrentProfile();
+  useEffect(() => {
+    async function loadAdViewData() {
+      const profile = await getCurrentProfile();
 
-        if (!profile) {
-          setIsLoggedIn(false);
-          setProfileId(null);
-          setAdViewsToday(0);
-          setIsLimitReached(false);
-          return;
-        }
-
-        setIsLoggedIn(true);
-        setProfileId(profile.id);
-
-        const todayKey = getTodayKey();
-
-        const { data, error } = await supabase
-          .from("ad_views")
-          .select("view_count")
-          .eq("profile_id", profile.id)
-          .eq("view_date", todayKey)
-          .maybeSingle();
-
-        if (error) {
-          console.error("광고 시청 횟수 불러오기 실패:", error.message);
-          setAdViewsToday(0);
-          setIsLimitReached(false);
-          return;
-        }
-
-        if (!data) {
-          const { error: insertError } = await supabase
-            .from("ad_views")
-            .insert({
-              profile_id: profile.id,
-              view_date: todayKey,
-              view_count: 0,
-            });
-
-          if (insertError) {
-            console.error("오늘 광고 시청 row 생성 실패:", insertError.message);
-          }
-
-          setAdViewsToday(0);
-          setIsLimitReached(false);
-          return;
-        }
-
-        const currentAdViews = data.view_count ?? 0;
-
-        setAdViewsToday(currentAdViews);
-
-        if (currentAdViews >= DAILY_AD_LIMIT) {
-          setIsLimitReached(true);
-        }
+      if (!profile) {
+        setIsLoggedIn(false);
+        setProfileId(null);
+        setAdViewsToday(0);
+        setIsLimitReached(false);
+        setIsLoading(false);
+        return;
       }
 
-      loadAdViewData();
-    }, []);
+      setIsLoggedIn(true);
+      setProfileId(profile.id);
+
+      const todayKey = getTodayKey();
+
+      const { data, error } = await supabase
+        .from("ad_views")
+        .select("view_count")
+        .eq("profile_id", profile.id)
+        .eq("view_date", todayKey)
+        .maybeSingle();
+
+      if (error) {
+        console.error("광고 시청 횟수 불러오기 실패:", error.message);
+        setAdViewsToday(0);
+        setIsLimitReached(false);
+        setIsLoading(false);
+        return;
+      }
+
+      if (!data) {
+        const { error: insertError } = await supabase.from("ad_views").insert({
+          profile_id: profile.id,
+          view_date: todayKey,
+          view_count: 0,
+        });
+
+        if (insertError) {
+          console.error("오늘 광고 시청 row 생성 실패:", insertError.message);
+        }
+
+        setAdViewsToday(0);
+        setIsLimitReached(false);
+        setIsLoading(false);
+        return;
+      }
+
+      const currentAdViews = data.view_count ?? 0;
+
+      setAdViewsToday(currentAdViews);
+      setIsLimitReached(currentAdViews >= DAILY_AD_LIMIT);
+      setIsLoading(false);
+    }
+
+    loadAdViewData();
+  }, []);
 
   useEffect(() => {
-      if (!isLoggedIn || !profileId) {
-        return;
-      }
-
-      if (isLimitReached) {
-        return;
-      }
-
-      if (secondsLeft <= 0) {
-        setIsCompleted(true);
-
-        async function giveAdReward() {
-          if (rewardGivenRef.current) {
-            return;
-          }
-          if (!profileId) {
-            rewardGivenRef.current = false;
-            return;
-          }
-
-          rewardGivenRef.current = true;
-
-          const todayKey = getTodayKey();
-
-          const { data: adViewData, error: adViewReadError } = await supabase
-            .from("ad_views")
-            .select("view_count")
-            .eq("profile_id", profileId)
-            .eq("view_date", todayKey)
-            .maybeSingle();
-
-          if (adViewReadError) {
-            console.error("광고 보상 전 시청 횟수 조회 실패:", adViewReadError.message);
-            rewardGivenRef.current = false;
-            return;
-          }
-
-          const currentAdViews = adViewData?.view_count ?? 0;
-
-          if (currentAdViews >= DAILY_AD_LIMIT) {
-            setIsLimitReached(true);
-            return;
-          }
-
-          const { data: profile, error: readError } = await supabase
-            .from("profiles")
-            .select("scratch_tickets, entry_tickets")
-            .eq("id", profileId)
-            .single();
-
-          if (readError) {
-            console.error("광고 보상 지급 전 프로필 조회 실패:", readError.message);
-            rewardGivenRef.current = false;
-            return;
-          }
-
-          const nextScratchTickets = (profile.scratch_tickets ?? 0) + 1;
-          const nextEntryTickets = (profile.entry_tickets ?? 0) + 1;
-
-          const { error: updateError } = await supabase
-            .from("profiles")
-            .update({
-              scratch_tickets: nextScratchTickets,
-              entry_tickets: nextEntryTickets,
-              updated_at: new Date().toISOString(),
-            })
-            .eq("id", profileId);
-
-          if (updateError) {
-            console.error("광고 보상 Supabase 저장 실패:", updateError.message);
-            rewardGivenRef.current = false;
-            return;
-          }
-
-          const nextAdViews = currentAdViews + 1;
-
-          const { error: adViewUpdateError } = await supabase
-            .from("ad_views")
-            .upsert({
-              profile_id: profileId,
-              view_date: todayKey,
-              view_count: nextAdViews,
-              updated_at: new Date().toISOString(),
-            }, {
-              onConflict: "profile_id,view_date",
-            });
-
-          if (adViewUpdateError) {
-            console.error("광고 시청 횟수 저장 실패:", adViewUpdateError.message);
-            rewardGivenRef.current = false;
-            return;
-          }
-
-          const { error: logError } = await supabase
-              .from("reward_logs")
-              .insert({
-                profile_id: profileId,
-                type: "ad",
-                title: "광고 시청",
-                description: "복권 1장, 응모권 1장 지급",
-                amount: "+1회",
-                emoji: "🎬",
-              });
-
-            if (logError) {
-              console.error("광고 보상 내역 저장 실패:", logError.message);
-            }
-
-          const { error: adRewardLogError } = await supabase.rpc(
-            "record_ad_reward_log",
-            {
-              p_ad_type: "reward_ad",
-              p_reward_type: "scratch_ticket_entry_ticket",
-              p_reward_amount: 1,
-              p_provider: "internal",
-              p_provider_event_id: null,
-              p_status: "completed",
-              p_memo: "광고 시청 보상: 복권 1장, 응모권 1장 지급",
-            }
-          );
-
-          if (adRewardLogError) {
-            console.error("광고 보상 로그 저장 실패:", adRewardLogError.message);
-          }
-
-          setAdViewsToday(nextAdViews);
-        }
-
-        giveAdReward();
-        return;
-      }
-
-      const timer = setTimeout(() => {
-        setSecondsLeft((prev) => prev - 1);
-      }, 1000);
-
-      return () => clearTimeout(timer);
-    }, [secondsLeft, isLimitReached, isLoggedIn, profileId]);
-
-  const progressPercent = ((15 - secondsLeft) / 15) * 100;
-
-      if (!isLoggedIn) {
-      return (
-        <main className="min-h-screen bg-[#FFF8EF] flex justify-center px-4 py-6 text-[#3B2414]">
-          <section className="w-full max-w-[430px] min-h-[860px] bg-[#FFFCF7] rounded-[36px] shadow-2xl overflow-hidden border border-orange-100 relative flex flex-col justify-center px-6">
-            <div className="text-center">
-              <div className="w-28 h-28 rounded-[36px] bg-[#FFF4DF] border border-orange-100 mx-auto flex items-center justify-center overflow-hidden mb-6">
-                <Image
-                  src="/images/bok-mascot-v2.png"
-                  alt="오늘복 캐릭터"
-                  width={86}
-                  height={86}
-                  className="object-contain"
-                />
-              </div>
-
-              <p className="text-sm font-bold text-[#FF642A] mb-2">
-                로그인 필요
-              </p>
-
-              <h1 className="text-3xl font-black leading-tight">
-                로그인하면 오늘의 복을
-                <br />
-                받을 수 있어요
-              </h1>
-
-              <p className="text-base text-[#6B4B38] mt-5 leading-relaxed">
-                광고 보상, 복권, 응모권은 로그인 후 이용할 수 있어요.
-              </p>
-
-              <Link
-                href="/login?next=/ad"
-                className="mt-8 w-full h-16 rounded-[22px] bg-gradient-to-r from-[#FF5C22] to-[#FF7A2F] text-white shadow-lg shadow-orange-200 font-black active:scale-95 transition flex items-center justify-center"
-              >
-                로그인하고 복 받기
-              </Link>
-
-              <Link
-                href="/"
-                className="mt-3 w-full h-14 rounded-[20px] bg-[#FFF4DF] text-[#FF642A] font-black active:scale-95 transition flex items-center justify-center"
-              >
-                홈으로 돌아가기
-              </Link>
-            </div>
-          </section>
-        </main>
-      );
+    if (!isLoggedIn || !profileId || isLimitReached || isCompleted) {
+      return;
     }
 
-    if (isLimitReached) {
-      return (
-        <main className="min-h-screen bg-[#FFF8EF] flex justify-center px-4 py-6 text-[#3B2414]">
-          <section className="w-full max-w-[430px] min-h-[860px] bg-[#FFFCF7] rounded-[36px] shadow-2xl overflow-hidden border border-orange-100 relative flex flex-col justify-center px-6">
-            <div className="text-center">
-              <div className="w-28 h-28 rounded-[36px] bg-[#FFF4DF] border border-orange-100 mx-auto flex items-center justify-center overflow-hidden mb-6">
-                <Image
-                  src="/images/bok-mascot-v2.png"
-                  alt="오늘복 캐릭터"
-                  width={86}
-                  height={86}
-                  className="object-contain"
-                />
-              </div>
-
-              <p className="text-sm font-bold text-[#FF642A] mb-2">
-                오늘 광고 시청 완료
-              </p>
-              <h1 className="text-3xl font-black leading-tight">
-                오늘 받을 수 있는 복을
-                <br />
-                모두 받았어요
-              </h1>
-
-              <p className="text-base text-[#6B4B38] mt-5 leading-relaxed">
-                하루 광고는 최대 {DAILY_AD_LIMIT}회까지 볼 수 있어요.
-                <br />
-                내일 다시 새로운 복을 받아보세요.
-              </p>
-
-              <div className="mt-8 rounded-[24px] bg-white border border-orange-100 shadow-sm p-5">
-                <p className="text-sm font-bold text-[#8A7567]">오늘 광고 시청</p>
-                <p className="text-4xl font-black mt-2">
-                  {adViewsToday} / {DAILY_AD_LIMIT}
-                </p>
-              </div>
-
-              <Link
-                href="/"
-                className="mt-8 w-full h-16 rounded-[22px] bg-gradient-to-r from-[#FF5C22] to-[#FF7A2F] text-white shadow-lg shadow-orange-200 font-black active:scale-95 transition flex items-center justify-center"
-              >
-                홈으로 돌아가기
-              </Link>
-            </div>
-          </section>
-        </main>
-      );
+    if (secondsLeft <= 0) {
+      setIsAdFinished(true);
+      return;
     }
+
+    const timer = setTimeout(() => {
+      setSecondsLeft((prev) => Math.max(prev - 1, 0));
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [secondsLeft, isLimitReached, isLoggedIn, profileId, isCompleted]);
+
+  const giveAdReward = useCallback(async () => {
+    if (!profileId) {
+      setRewardErrorMessage("로그인 정보를 확인하지 못했어요. 다시 로그인해 주세요.");
+      return;
+    }
+
+    if (!isAdFinished) {
+      setRewardErrorMessage("광고 시청이 끝난 뒤 보상을 받을 수 있어요.");
+      return;
+    }
+
+    if (rewardGivenRef.current || isRewarding || isCompleted) {
+      return;
+    }
+
+    setIsRewarding(true);
+    setRewardErrorMessage("");
+    rewardGivenRef.current = true;
+
+    const todayKey = getTodayKey();
+
+    const { data: adViewData, error: adViewReadError } = await supabase
+      .from("ad_views")
+      .select("view_count")
+      .eq("profile_id", profileId)
+      .eq("view_date", todayKey)
+      .maybeSingle();
+
+    if (adViewReadError) {
+      console.error("광고 보상 전 시청 횟수 조회 실패:", adViewReadError.message);
+      setRewardErrorMessage("광고 시청 횟수를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.");
+      rewardGivenRef.current = false;
+      setIsRewarding(false);
+      return;
+    }
+
+    const currentAdViews = adViewData?.view_count ?? 0;
+
+    if (currentAdViews >= DAILY_AD_LIMIT) {
+      setIsLimitReached(true);
+      rewardGivenRef.current = false;
+      setIsRewarding(false);
+      return;
+    }
+
+    const { data: profile, error: readError } = await supabase
+      .from("profiles")
+      .select("scratch_tickets, entry_tickets")
+      .eq("id", profileId)
+      .single();
+
+    if (readError) {
+      console.error("광고 보상 지급 전 프로필 조회 실패:", readError.message);
+      setRewardErrorMessage("보상 지급 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.");
+      rewardGivenRef.current = false;
+      setIsRewarding(false);
+      return;
+    }
+
+    const nextScratchTickets = (profile.scratch_tickets ?? 0) + 1;
+    const nextEntryTickets = (profile.entry_tickets ?? 0) + 1;
+
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({
+        scratch_tickets: nextScratchTickets,
+        entry_tickets: nextEntryTickets,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", profileId);
+
+    if (updateError) {
+      console.error("광고 보상 Supabase 저장 실패:", updateError.message);
+      setRewardErrorMessage("보상 지급에 실패했어요. 잠시 후 다시 시도해 주세요.");
+      rewardGivenRef.current = false;
+      setIsRewarding(false);
+      return;
+    }
+
+    const nextAdViews = currentAdViews + 1;
+
+    const { error: adViewUpdateError } = await supabase.from("ad_views").upsert(
+      {
+        profile_id: profileId,
+        view_date: todayKey,
+        view_count: nextAdViews,
+        updated_at: new Date().toISOString(),
+      },
+      {
+        onConflict: "profile_id,view_date",
+      }
+    );
+
+    if (adViewUpdateError) {
+      console.error("광고 시청 횟수 저장 실패:", adViewUpdateError.message);
+      setRewardErrorMessage("광고 시청 기록 저장에 실패했어요. 잠시 후 다시 시도해 주세요.");
+      rewardGivenRef.current = false;
+      setIsRewarding(false);
+      return;
+    }
+
+    const { error: logError } = await supabase.from("reward_logs").insert({
+      profile_id: profileId,
+      type: "ad",
+      title: "광고 시청",
+      description: "복권 1장, 응모권 1장 지급",
+      amount: "+1회",
+      emoji: "🎬",
+    });
+
+    if (logError) {
+      console.error("광고 보상 내역 저장 실패:", logError.message);
+    }
+
+    const { error: adRewardLogError } = await supabase.rpc("record_ad_reward_log", {
+      p_ad_type: "reward_ad",
+      p_reward_type: "scratch_ticket_entry_ticket",
+      p_reward_amount: 1,
+      p_provider: "internal",
+      p_provider_event_id: null,
+      p_status: "completed",
+      p_memo: "광고 시청 보상: 복권 1장, 응모권 1장 지급",
+    });
+
+    if (adRewardLogError) {
+      console.error("광고 보상 로그 저장 실패:", adRewardLogError.message);
+    }
+
+    setAdViewsToday(nextAdViews);
+    setIsCompleted(true);
+    setIsRewarding(false);
+  }, [profileId, isAdFinished, isRewarding, isCompleted]);
+
+  const progressPercent = ((AD_SECONDS - secondsLeft) / AD_SECONDS) * 100;
+
+  if (isLoading) {
+    return (
+      <main className="min-h-screen bg-[#FFF8EF] flex justify-center px-4 py-6 text-[#3B2414]">
+        <section className="w-full max-w-[430px] min-h-[860px] bg-[#FFFCF7] rounded-[36px] shadow-2xl overflow-hidden border border-orange-100 relative flex flex-col justify-center px-6">
+          <div className="text-center">
+            <div className="w-28 h-28 rounded-[36px] bg-[#FFF4DF] border border-orange-100 mx-auto flex items-center justify-center overflow-hidden mb-6">
+              <Image
+                src="/images/bok-mascot-v2.png"
+                alt="오늘복 캐릭터"
+                width={86}
+                height={86}
+                className="object-contain"
+              />
+            </div>
+            <p className="text-sm font-bold text-[#FF642A] mb-2">확인 중</p>
+            <h1 className="text-3xl font-black leading-tight">
+              오늘 받을 수 있는 복을
+              <br />
+              확인하고 있어요
+            </h1>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  if (!isLoggedIn) {
+    return (
+      <main className="min-h-screen bg-[#FFF8EF] flex justify-center px-4 py-6 text-[#3B2414]">
+        <section className="w-full max-w-[430px] min-h-[860px] bg-[#FFFCF7] rounded-[36px] shadow-2xl overflow-hidden border border-orange-100 relative flex flex-col justify-center px-6">
+          <div className="text-center">
+            <div className="w-28 h-28 rounded-[36px] bg-[#FFF4DF] border border-orange-100 mx-auto flex items-center justify-center overflow-hidden mb-6">
+              <Image
+                src="/images/bok-mascot-v2.png"
+                alt="오늘복 캐릭터"
+                width={86}
+                height={86}
+                className="object-contain"
+              />
+            </div>
+
+            <p className="text-sm font-bold text-[#FF642A] mb-2">로그인 필요</p>
+
+            <h1 className="text-3xl font-black leading-tight">
+              로그인하면 오늘의 복을
+              <br />
+              받을 수 있어요
+            </h1>
+
+            <p className="text-base text-[#6B4B38] mt-5 leading-relaxed">
+              광고 보상, 복권, 응모권은 로그인 후 이용할 수 있어요.
+            </p>
+
+            <Link
+              href="/login?next=/ad"
+              className="mt-8 w-full h-16 rounded-[22px] bg-gradient-to-r from-[#FF5C22] to-[#FF7A2F] text-white shadow-lg shadow-orange-200 font-black active:scale-95 transition flex items-center justify-center"
+            >
+              로그인하고 복 받기
+            </Link>
+
+            <Link
+              href="/"
+              className="mt-3 w-full h-14 rounded-[20px] bg-[#FFF4DF] text-[#FF642A] font-black active:scale-95 transition flex items-center justify-center"
+            >
+              홈으로 돌아가기
+            </Link>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  if (isLimitReached) {
+    return (
+      <main className="min-h-screen bg-[#FFF8EF] flex justify-center px-4 py-6 text-[#3B2414]">
+        <section className="w-full max-w-[430px] min-h-[860px] bg-[#FFFCF7] rounded-[36px] shadow-2xl overflow-hidden border border-orange-100 relative flex flex-col justify-center px-6">
+          <div className="text-center">
+            <div className="w-28 h-28 rounded-[36px] bg-[#FFF4DF] border border-orange-100 mx-auto flex items-center justify-center overflow-hidden mb-6">
+              <Image
+                src="/images/bok-mascot-v2.png"
+                alt="오늘복 캐릭터"
+                width={86}
+                height={86}
+                className="object-contain"
+              />
+            </div>
+
+            <p className="text-sm font-bold text-[#FF642A] mb-2">
+              오늘 광고 시청 완료
+            </p>
+            <h1 className="text-3xl font-black leading-tight">
+              오늘 받을 수 있는 복을
+              <br />
+              모두 받았어요
+            </h1>
+
+            <p className="text-base text-[#6B4B38] mt-5 leading-relaxed">
+              하루 광고는 최대 {DAILY_AD_LIMIT}회까지 볼 수 있어요.
+              <br />
+              내일 다시 새로운 복을 받아보세요.
+            </p>
+
+            <div className="mt-8 rounded-[24px] bg-white border border-orange-100 shadow-sm p-5">
+              <p className="text-sm font-bold text-[#8A7567]">오늘 광고 시청</p>
+              <p className="text-4xl font-black mt-2">
+                {adViewsToday} / {DAILY_AD_LIMIT}
+              </p>
+            </div>
+
+            <Link
+              href="/"
+              className="mt-8 w-full h-16 rounded-[22px] bg-gradient-to-r from-[#FF5C22] to-[#FF7A2F] text-white shadow-lg shadow-orange-200 font-black active:scale-95 transition flex items-center justify-center"
+            >
+              홈으로 돌아가기
+            </Link>
+          </div>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-[#FFF8EF] flex justify-center px-4 py-6 text-[#3B2414]">
       <section className="w-full max-w-[430px] min-h-[860px] bg-[#FFFCF7] rounded-[36px] shadow-2xl overflow-hidden border border-orange-100 relative">
-        {/* 상단 헤더 */}
         <header className="px-6 pt-6 pb-4 flex items-center justify-between">
           <Link
             href="/"
@@ -365,24 +397,31 @@ export default function AdPage() {
         </header>
 
         <div className="px-5 pb-32 space-y-5">
-          {/* 광고 영역 */}
           <section className="rounded-[34px] bg-gradient-to-br from-[#3B2414] to-[#6B3A1E] min-h-[340px] p-6 shadow-lg relative overflow-hidden text-white flex flex-col justify-between">
             <div className="absolute right-5 top-5 text-3xl opacity-30">✨</div>
             <div className="absolute left-5 bottom-5 text-6xl opacity-10">福</div>
 
             <div className="relative z-10 flex items-center justify-between">
               <div>
-                <p className="text-sm font-bold text-white/70">광고 시청 중</p>
-                <h2 className="text-3xl font-black mt-1">오늘의 복 준비중</h2>
+                <p className="text-sm font-bold text-white/70">
+                  {isCompleted ? "보상 지급 완료" : isAdFinished ? "광고 시청 완료" : "광고 시청 중"}
+                </p>
+                <h2 className="text-3xl font-black mt-1">
+                  {isCompleted ? "복이 도착했어요" : isAdFinished ? "보상을 받아주세요" : "오늘의 복 준비중"}
+                </h2>
               </div>
 
               <div className="w-16 h-16 rounded-3xl bg-white/15 border border-white/20 flex items-center justify-center">
-                <Play size={30} className="fill-white" />
+                {isCompleted ? (
+                  <CheckCircle2 size={32} />
+                ) : (
+                  <Play size={30} className="fill-white" />
+                )}
               </div>
             </div>
 
             <div className="relative z-10 flex flex-col items-center justify-center py-10">
-              {!isCompleted ? (
+              {!isAdFinished && !isCompleted ? (
                 <>
                   <div className="w-36 h-36 rounded-full bg-white/15 border border-white/20 flex flex-col items-center justify-center shadow-inner">
                     <Clock size={30} className="mb-2 text-white/80" />
@@ -390,17 +429,21 @@ export default function AdPage() {
                     <p className="text-sm font-bold text-white/70 mt-1">초 남음</p>
                   </div>
                   <p className="text-sm text-white/75 mt-5 text-center leading-relaxed">
-                    광고가 끝나면 복권 1장과 응모권 1장이 지급돼요.
+                    광고가 끝나면 보상 받기 버튼이 활성화돼요.
                   </p>
                 </>
               ) : (
                 <>
                   <div className="w-36 h-36 rounded-full bg-white flex flex-col items-center justify-center shadow-lg">
                     <CheckCircle2 size={58} className="text-[#43A047]" />
-                    <p className="text-lg font-black text-[#3B2414] mt-2">완료!</p>
+                    <p className="text-lg font-black text-[#3B2414] mt-2">
+                      {isCompleted ? "완료!" : "시청 완료"}
+                    </p>
                   </div>
                   <p className="text-lg font-black mt-5 text-center leading-relaxed">
-                    복권과 응모권이 지급됐어요
+                    {isCompleted
+                      ? "복권과 응모권이 지급됐어요"
+                      : "이제 보상을 받을 수 있어요"}
                   </p>
                 </>
               )}
@@ -416,21 +459,57 @@ export default function AdPage() {
             </div>
           </section>
 
-          {/* 지급 보상 카드 */}
           <section className="grid grid-cols-2 gap-3">
-            <RewardCard icon={<Ticket size={28} />} title="복권" value="1장" active={isCompleted} />
-            <RewardCard icon={<Gift size={28} />} title="응모권" value="1장" active={isCompleted} />
+            <RewardCard
+              icon={<Ticket size={28} />}
+              title="복권"
+              value="1장"
+              active={isCompleted}
+            />
+            <RewardCard
+              icon={<Gift size={28} />}
+              title="응모권"
+              value="1장"
+              active={isCompleted}
+            />
           </section>
 
-          {/* 완료 전/후 버튼 */}
-          {!isCompleted ? (
+          {!isAdFinished && !isCompleted && (
             <section className="rounded-[24px] bg-white border border-orange-100 shadow-sm p-4">
-              <p className="text-sm font-black text-[#FF642A] mb-2">잠깐만 기다려주세요</p>
+              <p className="text-sm font-black text-[#FF642A] mb-2">
+                잠깐만 기다려주세요
+              </p>
               <p className="text-sm leading-relaxed text-[#6B4B38]">
-                지금은 실제 광고 대신 테스트용 카운트다운이에요. 나중에 실제 광고 네트워크를 연결하면 광고 완료 후 보상이 지급되도록 바꿀 거예요.
+                지금은 실제 광고 대신 테스트용 카운트다운이에요. 나중에 실제 광고 네트워크를 연결하면 광고 완료 신호를 받은 뒤 보상이 지급되도록 바꿀 거예요.
               </p>
             </section>
-          ) : (
+          )}
+
+          {isAdFinished && !isCompleted && (
+            <section className="space-y-3">
+              {rewardErrorMessage && (
+                <div className="rounded-[20px] bg-red-50 border border-red-100 p-4 text-sm font-bold text-red-600">
+                  {rewardErrorMessage}
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={giveAdReward}
+                disabled={isRewarding}
+                className="w-full h-16 rounded-[22px] bg-gradient-to-r from-[#FF5C22] to-[#FF7A2F] text-white shadow-lg shadow-orange-200 font-black active:scale-95 transition flex items-center justify-center gap-2 disabled:opacity-60 disabled:active:scale-100"
+              >
+                <Gift size={22} />
+                {isRewarding ? "보상 지급 중..." : "복권 1장 + 응모권 1장 받기"}
+              </button>
+
+              <p className="text-center text-xs font-bold text-[#8A7567]">
+                오늘 광고 시청 {adViewsToday} / {DAILY_AD_LIMIT}
+              </p>
+            </section>
+          )}
+
+          {isCompleted && (
             <section className="space-y-3">
               <Link
                 href="/scratch"
@@ -450,7 +529,6 @@ export default function AdPage() {
           )}
         </div>
 
-        {/* 하단 네비게이션 */}
         <nav className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-orange-100 px-4 py-3 rounded-t-[28px] shadow-[0_-8px_30px_rgba(0,0,0,0.05)]">
           <div className="grid grid-cols-5 gap-1">
             <BottomNav href="/" icon={<Home size={24} />} label="홈" />
@@ -497,7 +575,17 @@ function RewardCard({
   );
 }
 
-function BottomNav({ icon, label, href, active = false }: { icon: React.ReactNode; label: string; href: string; active?: boolean }) {
+function BottomNav({
+  icon,
+  label,
+  href,
+  active = false,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  href: string;
+  active?: boolean;
+}) {
   return (
     <Link
       href={href}
