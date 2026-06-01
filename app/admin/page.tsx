@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   ArrowLeft,
   BarChart3,
+  FileText,
   Gift,
   Megaphone,
   Ticket,
@@ -149,6 +150,14 @@ export default function AdminPage() {
           >
             <Megaphone size={21} className="text-[#FF642A]" />
             광고 보상 로그 보기
+          </Link>
+
+          <Link
+            href="/admin/asset-logs"
+            className="h-14 rounded-[20px] bg-white border border-orange-100 shadow-sm font-black text-[#3B2414] flex items-center justify-center gap-2 active:scale-95 transition"
+          >
+            <FileText size={21} className="text-[#FF642A]" />
+            조정 이력 보기
           </Link>
 
           {isLoading ? (
