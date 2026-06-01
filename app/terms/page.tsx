@@ -60,23 +60,31 @@ export default function TermsPage() {
             있습니다.
           </PolicySection>
 
-          <PolicySection title="제6조 금지행위">
+          <PolicySection title="제6조 리워드 및 경품 서비스 안내">
+            오늘복에서 제공하는 복권, 응모권, 포인트 등은 서비스 내 이벤트 참여를
+            위한 리워드입니다. 오늘복은 현금성 도박, 사행성 게임, 현금 환급
+            서비스를 제공하지 않습니다. 경품 응모 및 지급은 오늘복이 정한 운영
+            기준에 따라 진행되며, 부정 이용이 확인될 경우 리워드 지급 또는 경품
+            지급이 제한될 수 있습니다.
+          </PolicySection>
+
+          <PolicySection title="제7조 금지행위">
             회원은 비정상적인 방법으로 광고 보상, 복권, 포인트, 응모권을
             획득하거나 시스템을 악용해서는 안 됩니다. 부정 이용이 확인될 경우
             보상 회수 또는 서비스 이용 제한이 이루어질 수 있습니다.
           </PolicySection>
 
-          <PolicySection title="제7조 서비스 변경 및 중단">
+          <PolicySection title="제8조 서비스 변경 및 중단">
             운영자는 서비스 개선, 시스템 점검, 운영상 필요에 따라 서비스의 전부
             또는 일부를 변경하거나 일시 중단할 수 있습니다.
           </PolicySection>
 
-          <PolicySection title="제8조 책임의 제한">
+          <PolicySection title="제9조 책임의 제한">
             운영자는 천재지변, 시스템 장애, 제3자 서비스 장애 등 불가피한 사유로
             발생한 서비스 이용 장애에 대해 책임이 제한될 수 있습니다.
           </PolicySection>
 
-          <PolicySection title="제9조 약관의 변경">
+          <PolicySection title="제10조 약관의 변경">
             본 약관은 서비스 운영 상황에 따라 변경될 수 있으며, 변경 시 서비스
             내 공지 또는 별도 안내를 통해 고지합니다.
           </PolicySection>
