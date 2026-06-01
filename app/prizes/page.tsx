@@ -383,6 +383,10 @@ export default function PrizesPage() {
               응모권이 목표 수에 도달하면 금일 확정 경품이 1개 추가되고,
               남은 응모권은 다음날로 이월돼요.
             </p>
+            <p className="text-xs leading-relaxed text-[#8A7567] mt-3">
+              오늘복의 복권과 응모권은 앱 내 이벤트 참여용 보상이며,
+              현금성 도박이나 현금 환급 서비스가 아니에요.
+            </p>
           </section>
         </div>
 
