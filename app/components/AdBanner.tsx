@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect } from "react";
+
 type AdBannerProps = {
   slotId: string;
   label?: string;
@@ -5,20 +9,10 @@ type AdBannerProps = {
   desc?: string;
 };
 
-/**
- * 나중에 카카오 AdFit 광고 단위 ID가 생기면 여기에 넣으면 됨.
- *
- * 예시:
- * const KAKAO_ADFIT_SLOTS: Record<string, string> = {
- *   "home-bottom": "DAN-xxxxxxxxxxxx",
- *   "scratch-result-bottom": "DAN-yyyyyyyyyyyy",
- *   "prizes-list-bottom": "DAN-zzzzzzzzzzzz",
- * };
- */
 const KAKAO_ADFIT_SLOTS: Record<string, string> = {
-  "home-bottom": "",
-  "scratch-result-bottom": "",
-  "prizes-list-bottom": "",
+  "home-bottom": "DAN-hdS3xKP5xGbFdfvM",
+  "scratch-result-bottom": "DAN-uYBdIO5bNImvJQvy",
+  "prizes-list-bottom": "DAN-7eNjnlY9Indbkeme",
 };
 
 export default function AdBanner({
@@ -30,10 +24,27 @@ export default function AdBanner({
   const isDevelopment = process.env.NODE_ENV === "development";
   const kakaoAdfitUnit = KAKAO_ADFIT_SLOTS[slotId];
 
-  /**
-   * 아직 실제 광고 단위 ID가 없으면 오늘복 자체 배너를 보여줌.
-   * 나중에 kakaoAdfitUnit 값이 들어가면 아래 실제 광고 영역으로 전환 가능.
-   */
+  useEffect(() => {
+    if (!kakaoAdfitUnit) {
+      return;
+    }
+
+    const scriptId = "kakao-adfit-script";
+
+    const existingScript = document.getElementById(scriptId);
+
+    if (existingScript) {
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.id = scriptId;
+    script.async = true;
+    script.src = "https://t1.daumcdn.net/kas/static/ba.min.js";
+
+    document.body.appendChild(script);
+  }, [kakaoAdfitUnit]);
+
   if (!kakaoAdfitUnit) {
     return (
       <section
@@ -78,17 +89,13 @@ export default function AdBanner({
     );
   }
 
-  /**
-   * 실제 카카오 AdFit 광고 단위 ID가 들어갔을 때 사용할 영역.
-   * 지금은 ID가 비어 있으므로 이 영역은 아직 화면에 나오지 않음.
-   */
   return (
     <section
       data-ad-slot={slotId}
       data-ad-provider="kakao-adfit"
       className="rounded-[24px] bg-white border border-orange-100 shadow-sm overflow-hidden"
     >
-      <div className="min-h-[86px] flex items-center justify-center bg-[#FFF8EF] px-4 py-3">
+      <div className="min-h-[120px] flex flex-col items-center justify-center bg-[#FFF8EF] px-4 py-3">
         <ins
           className="kakao_ad_area"
           style={{ display: "none" }}
@@ -98,8 +105,8 @@ export default function AdBanner({
         />
 
         {isDevelopment && (
-          <p className="text-xs font-bold text-[#B8A99F]">
-            Kakao AdFit slot: {slotId}
+          <p className="mt-2 text-[10px] font-bold text-[#B8A99F]">
+            Kakao AdFit slot: {slotId} / {kakaoAdfitUnit}
           </p>
         )}
       </div>
