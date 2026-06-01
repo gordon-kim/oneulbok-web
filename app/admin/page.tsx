@@ -143,6 +143,18 @@ export default function AdminPage() {
             당첨 내역 보기
           </Link>
 
+          <Link
+            href="/admin/ad-rewards"
+            className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition hover:bg-gray-50"
+          >
+            <div className="text-base font-semibold text-gray-900">
+              광고 보상 로그 보기
+            </div>
+            <div className="mt-1 text-sm text-gray-500">
+              사용자의 광고 시청 보상 지급 내역을 확인합니다.
+            </div>
+          </Link>
+
           {isLoading ? (
               <section className="rounded-[24px] bg-white border border-orange-100 shadow-sm p-6 text-center">
                 <p className="font-black text-[#FF642A]">
