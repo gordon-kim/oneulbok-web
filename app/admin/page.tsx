@@ -145,14 +145,10 @@ export default function AdminPage() {
 
           <Link
             href="/admin/ad-rewards"
-            className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition hover:bg-gray-50"
+            className="h-14 rounded-[20px] bg-white border border-orange-100 shadow-sm font-black text-[#3B2414] flex items-center justify-center gap-2 active:scale-95 transition"
           >
-            <div className="text-base font-semibold text-gray-900">
-              광고 보상 로그 보기
-            </div>
-            <div className="mt-1 text-sm text-gray-500">
-              사용자의 광고 시청 보상 지급 내역을 확인합니다.
-            </div>
+            <Megaphone size={21} className="text-[#FF642A]" />
+            광고 보상 로그 보기
           </Link>
 
           {isLoading ? (
