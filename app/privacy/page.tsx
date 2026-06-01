@@ -33,8 +33,9 @@ export default function PrivacyPage() {
           <PolicySection title="1. 수집하는 개인정보 항목">
             오늘복은 회원가입 및 로그인 과정에서 카카오 계정 정보 또는 이메일
             계정 정보를 통해 서비스 이용에 필요한 정보를 수집할 수 있습니다.
-            수집 항목은 이메일, 닉네임, 서비스 이용 기록, 포인트 및 응모 내역
-            등이 포함될 수 있습니다.
+            수집 항목은 이메일, 닉네임, 서비스 이용 기록, 광고 시청 및 보상 지급
+            기록, 포인트 및 응모 내역, 경품 당첨 및 지급 상태 등이 포함될 수
+            있습니다.
           </PolicySection>
 
           <PolicySection title="2. 개인정보의 수집 및 이용 목적">
@@ -56,7 +57,7 @@ export default function PrivacyPage() {
           <PolicySection title="5. 개인정보 처리 위탁">
             오늘복은 서비스 운영을 위해 Supabase, Vercel, Kakao 등 외부 서비스를
             사용할 수 있습니다. 해당 서비스는 로그인, 데이터 저장, 웹 서비스
-            배포 등 서비스 제공을 위해 활용됩니다.
+            배포, 광고 노출 및 광고 운영 등 서비스 제공을 위해 활용됩니다.
           </PolicySection>
 
           <PolicySection title="6. 회원의 권리">
@@ -66,8 +67,10 @@ export default function PrivacyPage() {
           </PolicySection>
 
           <PolicySection title="7. 쿠키 및 접속 정보">
-            오늘복은 로그인 상태 유지, 서비스 이용 분석, 보안 관리를 위해 브라우저
-            저장 정보 또는 접속 정보를 활용할 수 있습니다.
+            오늘복은 로그인 상태 유지, 서비스 이용 분석, 보안 관리, 광고 운영을
+            위해 브라우저 저장 정보, 접속 정보, 광고 요청 및 노출 관련 정보를
+            활용할 수 있습니다. 외부 광고 서비스 이용 과정에서 광고 식별자,
+            접속 환경, 광고 요청 정보 등이 처리될 수 있습니다.
           </PolicySection>
 
           <PolicySection title="8. 개인정보 보호를 위한 조치">
