@@ -114,137 +114,60 @@ export default function AdPage() {
   }, [secondsLeft, isLimitReached, isLoggedIn, profileId, isCompleted]);
 
   const giveAdReward = useCallback(async () => {
-    if (!profileId) {
-      setRewardErrorMessage("로그인 정보를 확인하지 못했어요. 다시 로그인해 주세요.");
-      return;
-    }
+  if (!profileId) {
+    setRewardErrorMessage("로그인 정보를 확인하지 못했어요. 다시 로그인해 주세요.");
+    return;
+  }
 
-    if (!isAdFinished) {
-      setRewardErrorMessage("광고 시청이 끝난 뒤 보상을 받을 수 있어요.");
-      return;
-    }
+  if (!isAdFinished) {
+    setRewardErrorMessage("광고 시청이 끝난 뒤 보상을 받을 수 있어요.");
+    return;
+  }
 
-    if (rewardGivenRef.current || isRewarding || isCompleted) {
-      return;
-    }
+  if (rewardGivenRef.current || isRewarding || isCompleted) {
+    return;
+  }
 
-    setIsRewarding(true);
-    setRewardErrorMessage("");
-    rewardGivenRef.current = true;
+  setIsRewarding(true);
+  setRewardErrorMessage("");
+  rewardGivenRef.current = true;
 
-    const todayKey = getTodayKey();
+  const { data, error } = await supabase.rpc("claim_ad_reward");
 
-    const { data: adViewData, error: adViewReadError } = await supabase
-      .from("ad_views")
-      .select("view_count")
-      .eq("profile_id", profileId)
-      .eq("view_date", todayKey)
-      .maybeSingle();
-
-    if (adViewReadError) {
-      console.error("광고 보상 전 시청 횟수 조회 실패:", adViewReadError.message);
-      setRewardErrorMessage("광고 시청 횟수를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.");
-      rewardGivenRef.current = false;
-      setIsRewarding(false);
-      return;
-    }
-
-    const currentAdViews = adViewData?.view_count ?? 0;
-
-    if (currentAdViews >= DAILY_AD_LIMIT) {
-      setIsLimitReached(true);
-      rewardGivenRef.current = false;
-      setIsRewarding(false);
-      return;
-    }
-
-    const { data: profile, error: readError } = await supabase
-      .from("profiles")
-      .select("scratch_tickets, entry_tickets")
-      .eq("id", profileId)
-      .single();
-
-    if (readError) {
-      console.error("광고 보상 지급 전 프로필 조회 실패:", readError.message);
-      setRewardErrorMessage("보상 지급 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.");
-      rewardGivenRef.current = false;
-      setIsRewarding(false);
-      return;
-    }
-
-    const nextScratchTickets = (profile.scratch_tickets ?? 0) + 1;
-    const nextEntryTickets = (profile.entry_tickets ?? 0) + 1;
-
-    const { error: updateError } = await supabase
-      .from("profiles")
-      .update({
-        scratch_tickets: nextScratchTickets,
-        entry_tickets: nextEntryTickets,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", profileId);
-
-    if (updateError) {
-      console.error("광고 보상 Supabase 저장 실패:", updateError.message);
-      setRewardErrorMessage("보상 지급에 실패했어요. 잠시 후 다시 시도해 주세요.");
-      rewardGivenRef.current = false;
-      setIsRewarding(false);
-      return;
-    }
-
-    const nextAdViews = currentAdViews + 1;
-
-    const { error: adViewUpdateError } = await supabase.from("ad_views").upsert(
-      {
-        profile_id: profileId,
-        view_date: todayKey,
-        view_count: nextAdViews,
-        updated_at: new Date().toISOString(),
-      },
-      {
-        onConflict: "profile_id,view_date",
-      }
-    );
-
-    if (adViewUpdateError) {
-      console.error("광고 시청 횟수 저장 실패:", adViewUpdateError.message);
-      setRewardErrorMessage("광고 시청 기록 저장에 실패했어요. 잠시 후 다시 시도해 주세요.");
-      rewardGivenRef.current = false;
-      setIsRewarding(false);
-      return;
-    }
-
-    const { error: logError } = await supabase.from("reward_logs").insert({
-      profile_id: profileId,
-      type: "ad",
-      title: "광고 시청",
-      description: "복권 1장, 응모권 1장 지급",
-      amount: "+1회",
-      emoji: "🎬",
-    });
-
-    if (logError) {
-      console.error("광고 보상 내역 저장 실패:", logError.message);
-    }
-
-    const { error: adRewardLogError } = await supabase.rpc("record_ad_reward_log", {
-      p_ad_type: "reward_ad",
-      p_reward_type: "scratch_ticket_entry_ticket",
-      p_reward_amount: 1,
-      p_provider: "internal",
-      p_provider_event_id: null,
-      p_status: "completed",
-      p_memo: "광고 시청 보상: 복권 1장, 응모권 1장 지급",
-    });
-
-    if (adRewardLogError) {
-      console.error("광고 보상 로그 저장 실패:", adRewardLogError.message);
-    }
-
-    setAdViewsToday(nextAdViews);
-    setIsCompleted(true);
+  if (error) {
+    console.error("광고 보상 RPC 처리 실패:", error.message);
+    setRewardErrorMessage("보상 지급에 실패했어요. 잠시 후 다시 시도해 주세요.");
+    rewardGivenRef.current = false;
     setIsRewarding(false);
-  }, [profileId, isAdFinished, isRewarding, isCompleted]);
+    return;
+  }
+
+  const result = Array.isArray(data) ? data[0] : data;
+
+  if (!result) {
+    setRewardErrorMessage("보상 지급 결과를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.");
+    rewardGivenRef.current = false;
+    setIsRewarding(false);
+    return;
+  }
+
+  if (!result.success) {
+    setRewardErrorMessage(result.message ?? "보상을 받을 수 없어요.");
+    setAdViewsToday(result.ad_views_today ?? adViewsToday);
+
+    if ((result.ad_views_today ?? 0) >= DAILY_AD_LIMIT) {
+      setIsLimitReached(true);
+    }
+
+    rewardGivenRef.current = false;
+    setIsRewarding(false);
+    return;
+  }
+
+  setAdViewsToday(result.ad_views_today ?? adViewsToday + 1);
+  setIsCompleted(true);
+  setIsRewarding(false);
+}, [profileId, isAdFinished, isRewarding, isCompleted, adViewsToday]);
 
   const progressPercent = ((AD_SECONDS - secondsLeft) / AD_SECONDS) * 100;
 
