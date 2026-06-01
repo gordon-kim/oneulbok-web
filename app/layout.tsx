@@ -13,10 +13,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "오늘복 - 매일 받는 작은 복",
-  description: "광고 보고 복권 받고, 경품에 응모하는 생활형 리워드 웹앱",
+  title: "오늘복",
+  description: "광고 보고 복권과 응모권을 받는 행운 리워드 앱",
+  manifest: "/manifest.json",
+  themeColor: "#FF642A",
+  appleWebApp: {
+    capable: true,
+    title: "오늘복",
+    statusBarStyle: "default",
+  },
   icons: {
-    icon: "/favicon.png",
+    icon: "/images/bok-mascot-v2.png",
+    apple: "/images/bok-mascot-v2.png",
   },
 };
 
