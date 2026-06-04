@@ -40,6 +40,7 @@ export default function AdminWinnersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [savingWinnerId, setSavingWinnerId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<"all" | WinnerStatus>("all");
 
   useEffect(() => {
     loadWinners();
@@ -112,6 +113,11 @@ export default function AdminWinnersPage() {
   const pendingCount = winners.filter((winner) => winner.status === "pending").length;
   const completedCount = winners.filter((winner) => winner.status === "completed").length;
   const holdCount = winners.filter((winner) => winner.status === "hold").length;
+  const filteredWinners =
+      statusFilter === "all"
+        ? winners
+        : winners.filter((winner) => winner.status === statusFilter);
+
 
   return (
     <main className="min-h-screen bg-[#FFF8EF] flex justify-center px-4 py-6 text-[#3B2414]">
@@ -163,53 +169,83 @@ export default function AdminWinnersPage() {
             </div>
           </section>
 
+          <section className="grid grid-cols-4 gap-2">
+              <FilterButton
+                label="전체"
+                active={statusFilter === "all"}
+                onClick={() => setStatusFilter("all")}
+              />
+              <FilterButton
+                label="지급 전"
+                active={statusFilter === "pending"}
+                onClick={() => setStatusFilter("pending")}
+              />
+              <FilterButton
+                label="완료"
+                active={statusFilter === "completed"}
+                onClick={() => setStatusFilter("completed")}
+              />
+              <FilterButton
+                label="보류"
+                active={statusFilter === "hold"}
+                onClick={() => setStatusFilter("hold")}
+              />
+            </section>
+
           {isLoading ? (
-            <section className="rounded-[24px] bg-white border border-orange-100 shadow-sm p-6 text-center">
-              <p className="font-black text-[#FF642A]">
-                당첨 내역을 불러오는 중...
-              </p>
-            </section>
-          ) : errorMessage ? (
-            <section className="rounded-[28px] bg-white border border-orange-100 shadow-sm p-6 text-center">
-              <div className="w-16 h-16 rounded-[24px] bg-[#FFF4DF] text-[#FF642A] flex items-center justify-center mx-auto mb-4">
-                <Trophy size={30} />
-              </div>
+              <section className="rounded-[24px] bg-white border border-orange-100 shadow-sm p-6 text-center">
+                <p className="font-black text-[#FF642A]">
+                  당첨 내역을 불러오는 중...
+                </p>
+              </section>
+            ) : errorMessage ? (
+              <section className="rounded-[28px] bg-white border border-orange-100 shadow-sm p-6 text-center">
+                <div className="w-16 h-16 rounded-[24px] bg-[#FFF4DF] text-[#FF642A] flex items-center justify-center mx-auto mb-4">
+                  <Trophy size={30} />
+                </div>
 
-              <h2 className="text-xl font-black text-[#3B2414]">
-                {errorMessage}
-              </h2>
+                <h2 className="text-xl font-black text-[#3B2414]">
+                  {errorMessage}
+                </h2>
 
-              <p className="text-sm leading-relaxed text-[#7E6658] mt-3">
-                이 페이지는 오늘복 운영자만 접근할 수 있어요.
-                관리자 권한이 있는 계정으로 로그인해주세요.
-              </p>
+                <p className="text-sm leading-relaxed text-[#7E6658] mt-3">
+                  이 페이지는 오늘복 운영자만 접근할 수 있어요.
+                  관리자 권한이 있는 계정으로 로그인해주세요.
+                </p>
 
-              <Link
-                href="/"
-                className="mt-5 h-12 rounded-[18px] bg-[#FFF4DF] text-[#FF642A] font-black flex items-center justify-center active:scale-95 transition"
-              >
-                홈으로 돌아가기
-              </Link>
-            </section>
-          ) : winners.length === 0 ? (
-            <section className="rounded-[24px] bg-white border border-orange-100 shadow-sm p-6 text-center">
-              <p className="font-black text-[#3B2414]">당첨 내역이 없어요</p>
-              <p className="text-sm text-[#7E6658] mt-2">
-                아직 추첨된 당첨자가 없어요.
-              </p>
-            </section>
-          ) : (
-            <section className="space-y-3">
-              {winners.map((winner) => (
-                <WinnerCard
-                  key={winner.id}
-                  winner={winner}
-                  isSaving={savingWinnerId === winner.id}
-                  onSave={handleUpdateWinnerStatus}
-                />
-              ))}
-            </section>
-          )}
+                <Link
+                  href="/"
+                  className="mt-5 h-12 rounded-[18px] bg-[#FFF4DF] text-[#FF642A] font-black flex items-center justify-center active:scale-95 transition"
+                >
+                  홈으로 돌아가기
+                </Link>
+              </section>
+            ) : filteredWinners.length === 0 ? (
+              <section className="rounded-[24px] bg-white border border-orange-100 shadow-sm p-6 text-center">
+                <p className="font-black text-[#3B2414]">
+                  {winners.length === 0
+                    ? "당첨 내역이 없어요"
+                    : "해당 상태의 당첨 내역이 없어요"}
+                </p>
+
+                <p className="text-sm text-[#7E6658] mt-2">
+                  {winners.length === 0
+                    ? "아직 추첨된 당첨자가 없어요."
+                    : "다른 지급 상태 필터를 선택해보세요."}
+                </p>
+              </section>
+            ) : (
+              <section className="space-y-3">
+                {filteredWinners.map((winner) => (
+                  <WinnerCard
+                    key={winner.id}
+                    winner={winner}
+                    isSaving={savingWinnerId === winner.id}
+                    onSave={handleUpdateWinnerStatus}
+                  />
+                ))}
+              </section>
+            )}
 
           <section className="rounded-[24px] bg-[#FFF4DF] border border-orange-100 p-5">
             <p className="text-sm font-black text-[#FF642A] mb-2">안내</p>
@@ -328,5 +364,29 @@ function StatusBadge({ status }: { status: WinnerStatus }) {
     >
       {statusLabels[status]}
     </span>
+  );
+}
+
+function FilterButton({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`h-11 rounded-[16px] border text-xs font-black active:scale-95 transition ${
+        active
+          ? "bg-[#FF642A] border-[#FF642A] text-white shadow-sm"
+          : "bg-white border-orange-100 text-[#8A7567]"
+      }`}
+    >
+      {label}
+    </button>
   );
 }
