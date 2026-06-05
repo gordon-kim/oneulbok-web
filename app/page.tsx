@@ -107,13 +107,13 @@ export default function OneulbokHome() {
             </h1>
           </div>
 
-          <button
-            onClick={showComingSoon}
+          <Link
+            href="/notice"
             className="relative w-11 h-11 rounded-full bg-white shadow-sm border border-orange-100 flex items-center justify-center active:scale-95 transition"
           >
             <Bell size={23} />
             <span className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-[#FF642A]" />
-          </button>
+          </Link>
         </header>
 
         <div className="px-5 pb-32 space-y-5">
