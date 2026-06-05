@@ -16,7 +16,6 @@ import {
   Coins,
   Trophy,
   Clock,
-  ChevronRight,
 } from "lucide-react";
 
 type SupabaseRewardLog = {
@@ -33,13 +32,9 @@ export default function WalletPage() {
   const [points, setPoints] = useState(0);
   const [scratchTickets, setScratchTickets] = useState(0);
   const [entryTickets, setEntryTickets] = useState(0);
+  const [winnerCount, setWinnerCount] = useState(0);
   const [rewardLogs, setRewardLogs] = useState<SupabaseRewardLog[]>([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  function showComingSoon() {
-    alert("준비 중인 기능이에요.");
-  }
-
 
   useEffect(() => {
       async function loadWalletData() {
@@ -50,6 +45,7 @@ export default function WalletPage() {
           setPoints(0);
           setScratchTickets(0);
           setEntryTickets(0);
+          setWinnerCount(0);
           setRewardLogs([]);
           return;
         }
@@ -58,6 +54,18 @@ export default function WalletPage() {
         setPoints(profile.points ?? 0);
         setScratchTickets(profile.scratch_tickets ?? 0);
         setEntryTickets(profile.entry_tickets ?? 0);
+
+        const { count: winnerTotal, error: winnerCountError } = await supabase
+          .from("prize_winners")
+          .select("*", { count: "exact", head: true })
+          .eq("profile_id", profile.id);
+
+        if (winnerCountError) {
+          console.error("당첨 건수 불러오기 실패:", winnerCountError.message);
+          setWinnerCount(0);
+        } else {
+          setWinnerCount(winnerTotal ?? 0);
+        }
 
         const { data: logs, error: logsError } = await supabase
           .from("reward_logs")
@@ -122,11 +130,30 @@ export default function WalletPage() {
             </p>
           </section>
 
+          {!isLoggedIn && (
+            <section className="rounded-[24px] bg-white border border-orange-100 shadow-sm p-5">
+              <p className="text-sm font-black text-[#FF642A] mb-2">
+                로그인이 필요해요
+              </p>
+              <p className="text-sm leading-relaxed text-[#6B4B38]">
+                로그인하면 내 포인트, 복권, 응모권, 당첨 내역과 최근 보상 기록을
+                확인할 수 있어요.
+              </p>
+
+              <Link
+                href="/login?next=/wallet"
+                className="mt-4 h-12 rounded-[18px] bg-gradient-to-r from-[#FF5C22] to-[#FF7A2F] text-white font-black active:scale-95 transition flex items-center justify-center"
+              >
+                로그인하고 지갑 보기
+              </Link>
+            </section>
+          )}
+
           {/* 보유 현황 */}
           <section className="grid grid-cols-3 gap-3">
             <InfoCard icon={<Ticket size={25} />} title="복권" value={`${scratchTickets}장`} />
             <InfoCard icon={<Gift size={25} />} title="응모권" value={`${entryTickets}장`} />
-            <InfoCard icon={<Trophy size={25} />} title="당첨" value="0건" />
+            <InfoCard icon={<Trophy size={25} />} title="당첨" value={`${winnerCount}건`} />
           </section>
 
           {/* 빠른 버튼 */}
@@ -151,12 +178,7 @@ export default function WalletPage() {
           <section className="space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-black">최근 내역</h3>
-              <button
-                onClick={showComingSoon}
-                className="text-sm font-bold text-[#8A7567] flex items-center gap-1"
-              >
-                전체보기 <ChevronRight size={16} />
-              </button>
+              <p className="text-sm font-bold text-[#8A7567]">최근 5건</p>
             </div>
 
             <div className="space-y-3">
@@ -167,7 +189,7 @@ export default function WalletPage() {
                     로그인하면 내 포인트와 최근 내역을 확인할 수 있어요.
                   </p>
                   <Link
-                    href="/login"
+                    href="/login?next=/wallet"
                     className="mt-4 h-12 rounded-[18px] bg-[#FFF4DF] text-[#FF642A] font-black flex items-center justify-center"
                   >
                     로그인하러 가기
@@ -192,7 +214,7 @@ export default function WalletPage() {
           <section className="rounded-[24px] bg-white border border-orange-100 shadow-sm p-4 flex items-start gap-3">
             <Coins className="text-[#FF642A] mt-0.5" size={22} />
             <p className="text-sm leading-relaxed text-[#6B4B38]">
-              포인트, 복권, 응모권과 최근 내역은 내 계정에 안전하게 저장돼요.
+              포인트, 복권, 응모권, 당첨 내역과 최근 보상 기록은 내 계정에 안전하게 저장돼요.
             </p>
           </section>
         </div>

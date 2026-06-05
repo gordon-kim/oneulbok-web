@@ -16,6 +16,25 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  function getSafeNextUrl() {
+    if (typeof window === "undefined") {
+      return "/";
+    }
+
+    const searchParams = new URLSearchParams(window.location.search);
+    const nextUrl = searchParams.get("next") || "/";
+
+    if (!nextUrl.startsWith("/")) {
+      return "/";
+    }
+
+    if (nextUrl.startsWith("//")) {
+      return "/";
+    }
+
+    return nextUrl;
+  }
+
   useEffect(() => {
       async function checkSession() {
         const {
@@ -28,8 +47,7 @@ export default function LoginPage() {
 
         await ensureCurrentProfile();
 
-        const searchParams = new URLSearchParams(window.location.search);
-        const nextUrl = searchParams.get("next") || "/";
+        const nextUrl = getSafeNextUrl();
 
         router.replace(nextUrl);
       }
@@ -60,8 +78,9 @@ export default function LoginPage() {
         return;
       }
 
-      const searchParams = new URLSearchParams(window.location.search);
-      const nextUrl = searchParams.get("next") || "/";
+      await ensureCurrentProfile();
+
+      const nextUrl = getSafeNextUrl();
 
       setIsLoading(false);
       router.push(nextUrl);
@@ -70,8 +89,7 @@ export default function LoginPage() {
   async function handleKakaoLogin() {
       setErrorMessage("");
 
-      const searchParams = new URLSearchParams(window.location.search);
-      const nextUrl = searchParams.get("next") || "/";
+      const nextUrl = getSafeNextUrl();
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "kakao",
@@ -138,8 +156,7 @@ export default function LoginPage() {
         return;
       }
 
-      const searchParams = new URLSearchParams(window.location.search);
-      const nextUrl = searchParams.get("next") || "/";
+      const nextUrl = getSafeNextUrl();
 
       setIsLoading(false);
       router.push(nextUrl);
@@ -241,7 +258,8 @@ export default function LoginPage() {
           <section className="mt-6 rounded-[24px] bg-white border border-orange-100 shadow-sm p-4 flex items-start gap-3">
             <ShieldCheck size={22} className="text-[#FF642A] mt-0.5 shrink-0" />
             <p className="text-xs leading-relaxed text-[#7E6658]">
-              현재 이메일 로그인은 Supabase Auth와 연결되어 있어요. 카카오 로그인은 다음 단계에서 연결할 예정이에요.
+              오늘복은 이메일 로그인과 카카오 로그인을 지원해요. 로그인하면 광고 보상,
+              복권, 응모권, 경품 응모 내역이 내 계정에 안전하게 저장돼요.
             </p>
           </section>
         </div>

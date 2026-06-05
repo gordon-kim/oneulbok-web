@@ -13,41 +13,35 @@ import {
   ArrowLeft,
   Bell,
   ChevronRight,
+  FileText,
   Gift,
   Home,
+  LogIn,
   LogOut,
-  Settings,
   ShieldCheck,
   Ticket,
   User,
-  UserPlus,
   Wallet,
 } from "lucide-react";
 
 const menuItems = [
   {
-    icon: <UserPlus size={22} />,
-    title: "친구 초대",
-    desc: "초대하면 추가 응모권을 받을 수 있어요",
-    href: "",
-  },
-  {
     icon: <Bell size={22} />,
-    title: "알림 설정",
-    desc: "당첨 발표와 오늘복 알림을 받아요",
-    href: "",
+    title: "공지사항",
+    desc: "오늘복 운영 안내와 중요한 소식을 확인해요",
+    href: "/notice",
   },
   {
-    icon: <ShieldCheck size={22} />,
-    title: "이용약관 / 개인정보처리방침",
-    desc: "서비스 이용에 필요한 약관을 확인해요",
+    icon: <FileText size={22} />,
+    title: "이용약관",
+    desc: "오늘복 서비스 이용 기준을 확인해요",
     href: "/terms",
   },
   {
-    icon: <Settings size={22} />,
-    title: "앱 설정",
-    desc: "닉네임, 알림, 계정 정보를 관리해요",
-    href: "",
+    icon: <ShieldCheck size={22} />,
+    title: "개인정보처리방침",
+    desc: "개인정보 처리와 광고 운영 안내를 확인해요",
+    href: "/privacy",
   },
 ];
 
@@ -58,6 +52,7 @@ export default function MyPage() {
   const [entryTickets, setEntryTickets] = useState(0);
   const [entryCount, setEntryCount] = useState(0);
   const [userName, setUserName] = useState("복 많은 사용자님");
+  const [joinedAtText, setJoinedAtText] = useState("로그인 후 확인 가능");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [scratchTickets, setScratchTickets] = useState(0);
 
@@ -68,6 +63,7 @@ export default function MyPage() {
         if (!profile) {
           setIsLoggedIn(false);
           setUserName("복 많은 사용자님");
+          setJoinedAtText("로그인 후 확인 가능");
           setPoints(0);
           setScratchTickets(0);
           setEntryTickets(0);
@@ -77,6 +73,7 @@ export default function MyPage() {
 
         setIsLoggedIn(true);
         setUserName(profile.nickname ?? "오늘복 회원님");
+        setJoinedAtText(formatJoinedAt(profile.created_at));
         setPoints(profile.points ?? 0);
         setScratchTickets(profile.scratch_tickets ?? 0);
         setEntryTickets(profile.entry_tickets ?? 0);
@@ -103,6 +100,24 @@ export default function MyPage() {
   const visibleEntryCount = isLoggedIn ? entryCount : 0;
   const visibleScratchTickets = isLoggedIn ? scratchTickets : 0;
 
+  function formatJoinedAt(value: string | null | undefined) {
+      if (!value) {
+        return "가입일 확인 불가";
+      }
+
+      const date = new Date(value);
+
+      if (Number.isNaN(date.getTime())) {
+        return "가입일 확인 불가";
+      }
+
+      return date.toLocaleDateString("ko-KR", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      });
+    }
+
 
   async function handleMockLogout() {
       const isConfirmed = window.confirm("로그아웃할까요?");
@@ -115,6 +130,7 @@ export default function MyPage() {
 
       setIsLoggedIn(false);
       setUserName("복 많은 사용자님");
+      setJoinedAtText("로그인 후 확인 가능");
       setPoints(0);
       setScratchTickets(0);
       setEntryTickets(0);
@@ -175,10 +191,30 @@ export default function MyPage() {
                   {isLoggedIn ? "오늘복 회원" : "둘러보기 이용자"}
                 </p>
                 <h2 className="text-2xl font-black leading-tight">{userName}</h2>
-                <p className="text-sm text-[#7E6658] mt-2">가입일 2026.04.29</p>
+                <p className="text-sm text-[#7E6658] mt-2">
+                  {isLoggedIn ? `가입일 ${joinedAtText}` : joinedAtText}
+                </p>
               </div>
             </div>
           </section>
+
+          {!isLoggedIn && (
+            <section className="rounded-[24px] bg-white border border-orange-100 shadow-sm p-5">
+              <p className="text-sm font-black text-[#FF642A] mb-2">
+                로그인이 필요해요
+              </p>
+              <p className="text-sm leading-relaxed text-[#6B4B38]">
+                로그인하면 내 포인트, 복권, 응모권, 경품 응모 현황을 확인할 수 있어요.
+              </p>
+
+              <Link
+                href="/login?next=/my"
+                className="mt-4 h-12 rounded-[18px] bg-gradient-to-r from-[#FF5C22] to-[#FF7A2F] text-white font-black active:scale-95 transition flex items-center justify-center"
+              >
+                로그인하고 내정보 보기
+              </Link>
+            </section>
+          )}
 
           {/* 내 요약 */}
           <section className="grid grid-cols-4 gap-2">
@@ -188,23 +224,28 @@ export default function MyPage() {
             <SummaryCard title="응모중" value={`${visibleEntryCount}건`} />
           </section>
 
-          {/* 초대 코드 */}
+          {/* 베타 운영 안내 */}
           <section className="rounded-[28px] bg-white border border-orange-100 shadow-sm p-5">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-bold text-[#FF642A]">내 초대 코드</p>
-                <h3 className="text-3xl font-black mt-1 tracking-wide">BOK2026</h3>
-                <p className="text-sm text-[#7E6658] mt-2">친구가 가입할 때 입력하면 둘 다 응모권을 받을 수 있어요.</p>
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-[#FFF4DF] text-[#FF642A] flex items-center justify-center shrink-0">
+                <Bell size={22} />
               </div>
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText("BOK2026");
-                  alert("초대 코드가 복사됐어요.");
-                }}
-                className="h-12 px-4 rounded-2xl bg-[#FFF4DF] text-[#FF642A] font-black active:scale-95 transition shrink-0"
-              >
-                복사
-              </button>
+
+              <div>
+                <p className="text-sm font-bold text-[#FF642A]">베타 운영 중</p>
+                <h3 className="text-xl font-black mt-1">오늘복 기능을 안정화하고 있어요</h3>
+                <p className="text-sm text-[#7E6658] mt-2 leading-relaxed">
+                  광고 보상, 복권, 경품 응모 기능은 운영 상황에 따라 조정될 수 있어요.
+                  중요한 안내는 공지사항에서 확인할 수 있어요.
+                </p>
+
+                <Link
+                  href="/notice"
+                  className="mt-4 h-12 rounded-[18px] bg-[#FFF4DF] text-[#FF642A] font-black active:scale-95 transition flex items-center justify-center"
+                >
+                  공지사항 보기
+                </Link>
+              </div>
             </div>
           </section>
 
@@ -229,7 +270,7 @@ export default function MyPage() {
               </button>
             ) : (
               <Link
-                href="/login"
+                href="/login?next=/my"
                 className="w-full h-15 rounded-[22px] bg-white border border-orange-100 shadow-sm font-black text-[#8A7567] active:scale-95 transition flex items-center justify-center gap-2 py-4"
               >
                 <LogOut size={20} />
