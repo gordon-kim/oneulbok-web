@@ -24,47 +24,6 @@ export default function OneulbokHome() {
   const [adViewsToday, setAdViewsToday] = useState(0);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  function showComingSoon() {
-    alert("준비 중인 기능이에요.");
-  }
-
-    useEffect(() => {
-      async function loadHomeData() {
-        const todayKey = getTodayKey();
-
-        const profile = await getCurrentProfile();
-
-        if (!profile) {
-          setIsLoggedIn(false);
-          setAdViewsToday(0);
-          setScratchTickets(0);
-          setEntryTickets(0);
-          return;
-        }
-
-        setIsLoggedIn(true);
-        setScratchTickets(profile.scratch_tickets ?? 0);
-        setEntryTickets(profile.entry_tickets ?? 0);
-
-        const { data: adViewData, error: adViewError } = await supabase
-          .from("ad_views")
-          .select("view_count")
-          .eq("profile_id", profile.id)
-          .eq("view_date", todayKey)
-          .maybeSingle();
-
-        if (adViewError) {
-          console.error("오늘 광고 횟수 불러오기 실패:", adViewError.message);
-          setAdViewsToday(0);
-          return;
-        }
-
-        setAdViewsToday(adViewData?.view_count ?? 0);
-      }
-
-      loadHomeData();
-    }, []);
-
   const remainingAds = Math.max(DAILY_AD_LIMIT - adViewsToday, 0);
   const visibleScratchTickets = isLoggedIn ? scratchTickets : 0;
   const visibleEntryTickets = isLoggedIn ? entryTickets : 0;
@@ -245,12 +204,12 @@ export default function OneulbokHome() {
           <section className="space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-black">오늘의 복권 받기</h3>
-              <button
-                onClick={showComingSoon}
-                className="text-sm font-bold text-[#8A7567] flex items-center gap-1"
+              <Link
+                href="/scratch"
+                className="text-sm font-bold text-[#8A7567] flex items-center gap-1 active:scale-95 transition"
               >
                 더보기 <ChevronRight size={16} />
-              </button>
+              </Link>
             </div>
 
             <Link
@@ -270,12 +229,12 @@ export default function OneulbokHome() {
           <section className="space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-black">오늘의 경품</h3>
-              <button
-                onClick={showComingSoon}
-                className="text-sm font-bold text-[#8A7567] flex items-center gap-1"
+              <Link
+                href="/prizes"
+                className="text-sm font-bold text-[#8A7567] flex items-center gap-1 active:scale-95 transition"
               >
                 더보기 <ChevronRight size={16} />
-              </button>
+              </Link>
             </div>
 
             <div className="grid grid-cols-3 gap-3">
