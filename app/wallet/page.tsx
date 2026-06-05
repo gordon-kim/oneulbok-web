@@ -153,7 +153,15 @@ export default function WalletPage() {
           <section className="grid grid-cols-3 gap-3">
             <InfoCard icon={<Ticket size={25} />} title="복권" value={`${scratchTickets}장`} />
             <InfoCard icon={<Gift size={25} />} title="응모권" value={`${entryTickets}장`} />
-            <InfoCard icon={<Trophy size={25} />} title="당첨" value={`${winnerCount}건`} />
+
+            <Link href="/wallet/winners" className="active:scale-95 transition">
+              <InfoCard
+                icon={<Trophy size={25} />}
+                title="당첨"
+                value={`${winnerCount}건`}
+                hint="확인하기"
+              />
+            </Link>
           </section>
 
           {/* 빠른 버튼 */}
@@ -239,7 +247,17 @@ export default function WalletPage() {
   );
 }
 
-function InfoCard({ icon, title, value }: { icon: React.ReactNode; title: string; value: string }) {
+function InfoCard({
+  icon,
+  title,
+  value,
+  hint,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  value: string;
+  hint?: string;
+}) {
   return (
     <div className="rounded-[24px] bg-white border border-orange-100 shadow-sm p-4 flex flex-col items-center justify-center min-h-[112px]">
       <div className="w-12 h-12 rounded-2xl bg-[#FFF4DF] text-[#FF642A] flex items-center justify-center mb-3">
@@ -247,6 +265,12 @@ function InfoCard({ icon, title, value }: { icon: React.ReactNode; title: string
       </div>
       <p className="text-xs font-bold text-[#8A7567]">{title}</p>
       <p className="text-xl font-black mt-1">{value}</p>
+
+      {hint && (
+        <p className="text-[11px] font-black text-[#FF642A] mt-1">
+          {hint}
+        </p>
+      )}
     </div>
   );
 }

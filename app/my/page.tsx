@@ -17,6 +17,7 @@ import {
   FileText,
   Gift,
   HelpCircle,
+  Trophy,
   Home,
   LogOut,
   ShieldCheck,
@@ -37,6 +38,12 @@ const menuItems = [
     title: "보상 내역",
     desc: "광고 보상, 복권, 경품 응모 기록을 확인해요",
     href: "/wallet/logs",
+  },
+  {
+    icon: <Trophy size={22} />,
+    title: "내 당첨 내역",
+    desc: "당첨된 경품과 지급 상태를 확인해요",
+    href: "/wallet/winners",
   },
   {
     icon: <HelpCircle size={22} />,

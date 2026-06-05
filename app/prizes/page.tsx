@@ -376,6 +376,14 @@ export default function PrizesPage() {
             title="놓치기 아쉬운 혜택"
             desc="응모권을 모아 더 많은 경품에 도전해보세요."
           />
+
+          <Link
+            href="/wallet/winners"
+            className="w-full h-14 rounded-[20px] bg-white border border-orange-100 shadow-sm font-black text-[#FF642A] active:scale-95 transition flex items-center justify-center"
+          >
+            내 당첨 내역 보기
+          </Link>
+
           {/* 안내 */}
           <section className="rounded-[24px] bg-white border border-orange-100 shadow-sm p-4">
             <p className="text-sm font-black text-[#FF642A] mb-2">안내</p>
