@@ -99,6 +99,13 @@ export default function PrivacyPage() {
             이용약관 보기 →
           </Link>
 
+          <Link
+            href="/contact"
+            className="block rounded-[24px] bg-white border border-orange-100 shadow-sm p-5 font-black text-[#FF642A] active:scale-[0.99] transition"
+          >
+            문의하기 보기 →
+          </Link>
+
         </div>
       </section>
     </main>

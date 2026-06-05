@@ -105,6 +105,13 @@ export default function NoticePage() {
               중요한 변경사항은 서비스 화면을 통해 안내할 예정입니다.
             </p>
           </section>
+
+          <Link
+            href="/contact"
+            className="w-full h-14 rounded-[20px] bg-white border border-orange-100 shadow-sm font-black text-[#FF642A] active:scale-95 transition flex items-center justify-center"
+          >
+            문의하기 보기
+          </Link>
         </div>
       </section>
     </main>

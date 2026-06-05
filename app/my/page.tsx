@@ -15,8 +15,8 @@ import {
   ChevronRight,
   FileText,
   Gift,
+  HelpCircle,
   Home,
-  LogIn,
   LogOut,
   ShieldCheck,
   Ticket,
@@ -30,6 +30,12 @@ const menuItems = [
     title: "공지사항",
     desc: "오늘복 운영 안내와 중요한 소식을 확인해요",
     href: "/notice",
+  },
+  {
+    icon: <HelpCircle size={22} />,
+    title: "문의하기",
+    desc: "광고 보상, 경품 지급, 계정 관련 안내를 확인해요",
+    href: "/contact",
   },
   {
     icon: <FileText size={22} />,

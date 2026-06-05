@@ -104,11 +104,11 @@ export default function AdminPage() {
           <section className="rounded-[28px] bg-gradient-to-br from-[#3B2414] to-[#6B3A1E] p-5 text-white shadow-lg">
             <p className="text-sm font-bold text-white/70">운영 현황</p>
             <h2 className="text-2xl font-black mt-1">
-              오늘복 MVP 관리자 화면
+              오늘복 운영 관리자 화면
             </h2>
             <p className="text-sm leading-relaxed text-white/75 mt-3">
-              회원, 광고 시청, 복권, 경품 응모 현황을 한눈에 확인하는
-              운영용 대시보드예요.
+              회원, 광고 보상, 복권, 경품 응모, 당첨자 지급 상태와 관리자 조정 이력을
+              한곳에서 확인하는 운영용 대시보드예요.
             </p>
           </section>
 
@@ -118,6 +118,22 @@ export default function AdminPage() {
           >
             <Users size={21} className="text-[#FF642A]" />
             회원 목록 보기
+          </Link>
+
+          <Link
+            href="/admin/asset-logs"
+            className="h-14 rounded-[20px] bg-white border border-orange-100 shadow-sm font-black text-[#3B2414] flex items-center justify-center gap-2 active:scale-95 transition"
+          >
+            <FileText size={21} className="text-[#FF642A]" />
+            조정 이력 보기
+          </Link>
+
+          <Link
+            href="/admin/ad-rewards"
+            className="h-14 rounded-[20px] bg-white border border-orange-100 shadow-sm font-black text-[#3B2414] flex items-center justify-center gap-2 active:scale-95 transition"
+          >
+            <Megaphone size={21} className="text-[#FF642A]" />
+            광고 보상 로그 보기
           </Link>
 
           <Link
@@ -142,22 +158,6 @@ export default function AdminPage() {
           >
             <Trophy size={21} className="text-[#FF642A]" />
             당첨 내역 보기
-          </Link>
-
-          <Link
-            href="/admin/ad-rewards"
-            className="h-14 rounded-[20px] bg-white border border-orange-100 shadow-sm font-black text-[#3B2414] flex items-center justify-center gap-2 active:scale-95 transition"
-          >
-            <Megaphone size={21} className="text-[#FF642A]" />
-            광고 보상 로그 보기
-          </Link>
-
-          <Link
-            href="/admin/asset-logs"
-            className="h-14 rounded-[20px] bg-white border border-orange-100 shadow-sm font-black text-[#3B2414] flex items-center justify-center gap-2 active:scale-95 transition"
-          >
-            <FileText size={21} className="text-[#FF642A]" />
-            조정 이력 보기
           </Link>
 
           {isLoading ? (
@@ -287,10 +287,14 @@ export default function AdminPage() {
           )}
 
           <section className="rounded-[24px] bg-[#FFF4DF] border border-orange-100 p-5">
-            <p className="text-sm font-black text-[#FF642A] mb-2">안내</p>
+            <p className="text-sm font-black text-[#FF642A] mb-2">운영 안내</p>
             <p className="text-sm leading-relaxed text-[#6B4B38]">
-              현재 관리자 페이지는 기초 조회용 화면이에요. 다음 단계에서 관리자 권한 제한,
-              회원 상세 조회, 당첨자 추첨 기능을 추가할 수 있어요.
+              관리자 화면에서는 회원 자산 조정, 광고 보상 로그 확인, 경품 응모 현황,
+              당첨자 추첨, 지급 상태 관리, 조정 이력 확인을 진행할 수 있어요.
+            </p>
+            <p className="text-xs leading-relaxed text-[#8A7567] mt-3">
+              포인트, 복권, 응모권을 수동 조정하거나 당첨자 지급 상태를 변경할 때는
+              운영 확인을 위해 관리자 메모를 남겨주세요.
             </p>
           </section>
         </div>
