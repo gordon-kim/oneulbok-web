@@ -178,7 +178,12 @@ export default function WalletPage() {
           <section className="space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-black">최근 내역</h3>
-              <p className="text-sm font-bold text-[#8A7567]">최근 5건</p>
+              <Link
+                href="/wallet/logs"
+                className="text-sm font-bold text-[#8A7567] flex items-center gap-1 active:scale-95 transition"
+              >
+                전체보기
+              </Link>
             </div>
 
             <div className="space-y-3">

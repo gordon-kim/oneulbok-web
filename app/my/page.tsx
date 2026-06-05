@@ -13,6 +13,7 @@ import {
   ArrowLeft,
   Bell,
   ChevronRight,
+  Clock,
   FileText,
   Gift,
   HelpCircle,
@@ -30,6 +31,12 @@ const menuItems = [
     title: "공지사항",
     desc: "오늘복 운영 안내와 중요한 소식을 확인해요",
     href: "/notice",
+  },
+  {
+    icon: <Clock size={22} />,
+    title: "보상 내역",
+    desc: "광고 보상, 복권, 경품 응모 기록을 확인해요",
+    href: "/wallet/logs",
   },
   {
     icon: <HelpCircle size={22} />,
