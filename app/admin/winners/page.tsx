@@ -333,7 +333,7 @@ function WinnerCard({
         <textarea
           value={memo}
           onChange={(event) => setMemo(event.target.value)}
-          placeholder="예: 5/15 CU 상품권 발송 완료"
+          placeholder={getWinnerMemoPlaceholder(status)}
           className="w-full min-h-[88px] rounded-[18px] bg-[#FFF8EF] border border-orange-100 p-4 text-sm font-bold outline-none focus:border-[#FF642A] resize-none"
         />
       </div>
@@ -389,4 +389,16 @@ function FilterButton({
       {label}
     </button>
   );
+}
+
+function getWinnerMemoPlaceholder(status: WinnerStatus) {
+  if (status === "completed") {
+    return "예: 2026.06.05 CU 상품권 발송 완료 / 카카오톡 선물하기";
+  }
+
+  if (status === "hold") {
+    return "예: 중복 계정 의심 / 당첨자 확인 불가로 지급 보류";
+  }
+
+  return "예: 지급 예정 / 당첨자 확인 중 / 발송 준비 중";
 }
